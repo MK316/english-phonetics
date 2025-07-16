@@ -153,7 +153,13 @@ import streamlit as st
 
 with tabs[3]:
     st.markdown("#### Google Sheet to share for Class Activities")
+    st.markdown("---")
+    st.markdown("""
+    + Grouping
 
+    """)
+
+    st.markdown("---")
     # Custom styled HTML button
     button_html = """
         <style>
