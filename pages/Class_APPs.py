@@ -149,12 +149,11 @@ with tabs[2]:
 # Github
 
 with tabs[3]:
-    st.markdown("#### Github IDs")
-    st.markdown("[Github IDs](https://docs.google.com/spreadsheets/d/1z2uYvH-foo3BZ6a4_T80TK7HOQbIJIYIUe5SWOEaGyk/edit?usp=sharing): Group members, Google Drive")
-
+    st.markdown("#### Google Sheet to share for Class Activities")
+    
     # Button to open GitHub ID page
-    if st.button("Open GitHub ID Page"):
-        st.markdown(f'<meta http-equiv="refresh" content="0;url=https://docs.google.com/spreadsheets/d/1z2uYvH-foo3BZ6a4_T80TK7HOQbIJIYIUe5SWOEaGyk/edit?usp=sharing">', unsafe_allow_html=True)
+    if st.button("Go to Google Sheet"):
+        st.markdown(f'<meta http-equiv="refresh" content="0;url=https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing">', unsafe_allow_html=True)
 
 
 # Text-to-Speech tab
