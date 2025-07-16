@@ -7,4 +7,4 @@ st.markdown("### 🍊 [fənɛɾɪks]: IPA TypeIt Tool (Embedded)")
 st.markdown("You can use the full IPA keyboard below to input phonetic transcriptions.")
 
 # Embed the external IPA tool
-components.iframe("https://ipa.typeit.org/full/", height=700, scrolling=True)
+components.iframe("https://ipa.typeit.org/full/", height=600, scrolling=True)
