@@ -16,7 +16,7 @@ def create_wordcloud(text):
     return wordcloud
 
 # Streamlit tabs
-tabs = st.tabs(["📈 QR", "⏳ Timer", "👥 Grouping", "🐤 Github IDs","🔊 Text-to-Speech", "⛅ Word Cloud", "🎨 Drawing","😍 Emoji","TBA"])
+tabs = st.tabs(["📈 QR", "⏳ Timer", "👥 Grouping", "🐤 GoogleSheet","🔊 Text-to-Speech", "🎨 Drawing"])
 
 # QR Code tab
 with tabs[0]:
@@ -199,29 +199,8 @@ with tabs[4]:
     st.caption("🇷🇺 Russian: Созданные учителями кодированные приложения предлагают персонализированный опыт обучения, упрощая понимание сложных концепций с помощью интерактивных и адаптивных инструментов. Они повышают вовлеченность, предоставляют мгновенную обратную связь и поддерживают активное обучение.")
     st.caption("🇨🇳 Chinese: 由教师设计的编程应用程序为学习者提供个性化的学习体验，通过互动和适应性工具使复杂的概念更容易理解。它们增强学习参与度，提供即时反馈，并支持主动学习。")
     st.caption("🇯🇵 Japanese: 教師が設計したコーディングアプリケーションは、学習者のニーズに合わせた学習体験を提供し、複雑な概念をインタラクティブで適応性のあるツールを通じて理解しやすくします。また、学習への集中力を高め、即時フィードバックを提供し、主体的な学習をサポートします。")
-       
-
 
 with tabs[5]:
-    st.subheader("🌌 Word Cloud Generator")
-
-    # Input text for generating the word cloud
-    user_input = st.text_area("Enter text to generate a word cloud:")
-
-    # Button to generate the word cloud
-    if st.button("Generate Word Cloud"):
-        if user_input.strip():
-            # Generate word cloud only when there is valid input
-            wordcloud = create_wordcloud(user_input)
-            fig, ax = plt.subplots()
-            ax.imshow(wordcloud, interpolation='bilinear')
-            ax.axis("off")
-            st.pyplot(fig)
-            plt.close(fig)  # Close the figure to prevent memory issues
-        else:
-            st.warning("Please enter some text to generate a word cloud.")
-
-with tabs[6]:
     st.caption("Use the canvas below to draw freely. You can change the stroke width and color.")
 
    # Place Stroke Width, Stroke Color, and Background Color in the same row
@@ -254,15 +233,3 @@ with tabs[6]:
     if st.button("🗑️ Clear Canvas"):
         st.session_state["clear_canvas"] = not st.session_state["clear_canvas"]
         st.rerun()  # This forces Streamlit to reload and clear the drawing
-
-with tabs[7]:
-    st.markdown("### 🔗 Complete list of github markdown emoji markup")
-    st.write("😘 🎵 🙆‍♀️ 🐾 🌀 🌱 🎈📁 📎 🎧 🔉")
-
-# Create a button that opens the Gist page
-    st.markdown("---")
-    st.link_button("Go to: Complete list of github markdown emoji markup from Github (rxaviers)", "https://gist.github.com/rxaviers/7360908")
-    st.caption("This link provides quick access to a Unicode characters list. Clicking the button below will open an external page owned by rxaviers on GitHub Gist. The page contains a comprehensive table of Unicode characters for reference.")
-
-with tabs[8]:
-    st.markdown("[link](https://raw.githubusercontent.com/MK316/Digital-Literacy-Class/refs/heads/main/data/temp.txt)")
