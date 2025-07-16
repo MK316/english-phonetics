@@ -149,12 +149,28 @@ with tabs[2]:
 
 # Github
 
+import streamlit as st
+
 with tabs[3]:
     st.markdown("#### Google Sheet to share for Class Activities")
-    
-    # Button to open GitHub ID page
-    if st.button("Go to Google Sheet"):
-        st.markdown(f'<meta http-equiv="refresh" content="0;url=https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing">', unsafe_allow_html=True)
+
+    # Custom styled button using HTML
+    st.markdown("""
+        <style>
+        .blue-button {
+            background-color: #003366;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .blue-button:hover {
+            background-color: #002244;
+        }
+        </style>
+        <a href="https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo
 
 # Text-to-Speech tab
 with tabs[4]:
