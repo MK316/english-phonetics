@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="IPA Typing Tool", layout="wide")
 
-st.markdown("## 🍊 [fənɛɾɪks]: IPA TypeIt Tool (Embedded)")
+st.markdown("### 🍊 [fənɛɾɪks]: IPA TypeIt Tool (Embedded)")
 st.markdown("You can use the full IPA keyboard below to input phonetic transcriptions.")
 
 # Embed the external IPA tool
