@@ -149,8 +149,6 @@ with tabs[2]:
 
 # Github
 
-import streamlit as st
-
 with tabs[3]:
     st.markdown("#### Google Sheet to share for Class Activities")
 
