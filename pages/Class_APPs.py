@@ -180,7 +180,7 @@ with tabs[3]:
             }
         </style>
         <a href="https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing" target="_blank">
-            <button class="custom-button">Go to Google Sheet</button>
+            <button class="custom-button">🎯 Click: Go to Google Sheet</button>
         </a>
     """
     st.markdown(button_html, unsafe_allow_html=True)
