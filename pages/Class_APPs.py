@@ -153,9 +153,9 @@ import streamlit as st
 
 with tabs[3]:
     st.markdown("#### Google Sheet to share for Class Activities")
-    st.markdown("---")
     st.markdown("""
-    + Grouping
+    + Grouping (1st week)
+    + Quiz schedule
 
     """)
 
