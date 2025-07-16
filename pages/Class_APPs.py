@@ -9,6 +9,7 @@ import streamlit.components.v1 as components  # For embedding YouTube videos
 from gtts import gTTS
 import io
 from streamlit_drawable_canvas import st_canvas
+import streamlit.components.v1 as components
 
 # Function to create word cloud
 def create_wordcloud(text):
@@ -149,11 +150,16 @@ with tabs[2]:
 # Github
 
 with tabs[3]:
-    st.markdown("#### Google Sheet to share for Class Activities")
-    
-    # Button to open GitHub ID page
-    if st.button("Go to Google Sheet"):
-        st.markdown(f'<meta http-equiv="refresh" content="0;url=https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing">', unsafe_allow_html=True)
+    st.markdown("#### Google Sheet to Share for Class Activities")
+
+    # Embed the Google Sheet
+    sheet_url = "https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing"
+
+    # Convert to embed URL
+    embed_url = sheet_url.replace("/edit?usp=sharing", "/preview")
+
+    # Embed in iframe
+    components.iframe(embed_url, height=600, scrolling=True)
 
 
 # Text-to-Speech tab
