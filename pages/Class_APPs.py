@@ -149,26 +149,36 @@ with tabs[2]:
 
 # Github
 
+import streamlit as st
+
 with tabs[3]:
     st.markdown("#### Google Sheet to share for Class Activities")
 
-    # Custom styled button using HTML
-    st.markdown("""
+    # Custom styled HTML button
+    button_html = """
         <style>
-        .blue-button {
-            background-color: #003366;
-            color: white;
-            padding: 0.5em 1em;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 16px;
-        }
-        .blue-button:hover {
-            background-color: #002244;
-        }
+            .custom-button {
+                background-color: #003366;
+                color: white;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .custom-button:hover {
+                background-color: #002244;
+            }
         </style>
-        <a href="https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo
+        <a href="https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing" target="_blank">
+            <button class="custom-button">Go to Google Sheet</button>
+        </a>
+    """
+    st.markdown(button_html, unsafe_allow_html=True)
+
 
 # Text-to-Speech tab
 with tabs[4]:
