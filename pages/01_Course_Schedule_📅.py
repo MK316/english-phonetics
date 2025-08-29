@@ -67,16 +67,18 @@ schedule_content = {
 table_md = ""
 
 for week in range(16):
-    # Default emoji
-    emoji = "🗓️"
-    week_label = f"**{emoji} Week {week + 1:02d}**"
-    # Change emoji only for Week 7 ~ 11
+    # 1) Decide emoji/tag FIRST
     if 7 <= (week + 1) <= 11:
-        emoji = "💙 (Academic trip)"   # ← pick any emoji you like
+        emoji = "💙"
+        tag = " (Academic trip)"
+    else:
+        emoji = "🗓️"
+        tag = ""
 
-    
-    table_md += f"\n{week_label}\n\n"
-    table_md += table_header + table_divider
+    # 2) Build label AFTER deciding emoji
+    week_label = f"**{emoji} Week {week + 1:02d}{tag}**"
+
+    # 3) Append label and header ONCE
     table_md += f"\n{week_label}\n\n"
     table_md += table_header + table_divider
 
@@ -84,15 +86,25 @@ for week in range(16):
     tuesday = start_date + timedelta(weeks=week)
     thursday = tuesday + timedelta(days=2)
 
-    # Date strings for lookup and display
+    # Keys for dictionary lookup
     tuesday_key = tuesday.strftime('%Y-%m-%d')
     thursday_key = thursday.strftime('%Y-%m-%d')
 
+    # Red highlight for Oct. 7 & 9 (Week 6)
     def format_date(date_obj):
         date_str = date_obj.strftime('%Y-%m-%d')
-        if date_str in ["2025-10-07", "2025-10-09"]:  # Week 6
+        if date_str in ("2025-10-07", "2025-10-09"):
             return f"<span style='color:red'>{date_obj.strftime('%b. %d')}</span>"
         return date_obj.strftime('%b. %d')
+
+    # Pull content (or empty) from your schedule_content dict
+    tue_data = schedule_content.get(tuesday_key, ["", "", "", ""])
+    thu_data = schedule_content.get(thursday_key, ["", "", "", ""])
+
+    # Add rows
+    table_md += f"| {format_date(tuesday)} | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
+    table_md += f"| {format_date(thursday)} | {thu_data[0]} | {thu_data[1]} | {thu_data[2]} | {thu_data[3]} |\n"
+
 
     # Get content or use blanks
     tue_data = schedule_content.get(tuesday_key, ["", "", "", ""])
