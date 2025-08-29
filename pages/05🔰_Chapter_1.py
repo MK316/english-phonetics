@@ -80,4 +80,4 @@ with st.expander("Thumbnails"):
         if i < len(slides):
             if c.button(f"{i+1}", key=f"thumb_{i}"):
                 st.session_state.slide_idx = i
-            c.image(slides[i], use_column_width=True)
+            c.image(slides[i], use_container_width=True)
