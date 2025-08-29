@@ -69,12 +69,12 @@ table_md = ""
 for week in range(16):
     # Default emoji
     emoji = "🗓️"
-
+    week_label = f"**{emoji} Week {week + 1:02d}**"
     # Change emoji only for Week 7 ~ 11
     if 7 <= (week + 1) <= 11:
         emoji = "💙 (Academic trip)"   # ← pick any emoji you like
 
-    week_label = f"**{emoji} Week {week + 1:02d}**"
+    
     table_md += f"\n{week_label}\n\n"
     table_md += table_header + table_divider
     table_md += f"\n{week_label}\n\n"
