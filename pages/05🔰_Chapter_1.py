@@ -3,7 +3,7 @@ import requests
 import re
 
 st.set_page_config(page_title="Lecture Slide Player — Chapter 1", layout="wide")
-st.title("📚 Lecture Slide Player — Chapter 1")
+st.header("📚 Lecture Slide Player — Chapter 1")
 
 # ------------ CONFIG ------------
 GITHUB_OWNER  = "MK316"
