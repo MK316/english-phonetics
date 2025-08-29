@@ -3,7 +3,7 @@ import requests
 import re
 
 st.set_page_config(page_title="Lecture Slide Player — Chapter 1", layout="wide")
-st.header("📚 Lecture Slide Player — Chapter 1")
+st.header("📚 Chapter 1: Articulation and acoustics")
 
 # ------------ CONFIG ------------
 GITHUB_OWNER  = "MK316"
