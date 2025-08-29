@@ -4,28 +4,30 @@ from datetime import datetime, timedelta
 st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
 st.title("📘 Course Schedule")
 
-schedule_content = {
-    "2025-09-16": ["Functions", "Parameters, Return", "Practice Quiz", "HW1 Due"],
-    "2025-09-18": ["Review", "All Topics", "Peer Review", ""],
-    "2025-10-07": ["Midterm Review", "Core Concepts", "Kahoot + Quiz", ""],
-    "2025-10-09": ["Midterm", "", "In-Class Test", ""]
-}
-
-# Column headers
+# Table header
 table_header = "| Date | Chapter | Keywords | Assignments & Activities | Remark |\n"
 table_divider = "|------|---------|----------|---------------------------|--------|\n"
 
 # Start on Tuesday, September 2, 2025
 start_date = datetime(2025, 9, 2)
 
-# Step 1: Define only the content you want to appear
+# ✅ STEP 1: Fill only the weeks you want — here, Week 3 has data (Sept. 16 & 18)
 schedule_content = {
-    "2025-09-16": ["Functions", "Parameters, Return", "Practice Quiz", "HW1 Due"],
-    "2025-09-18": ["Review", "All Topics", "Peer Review", ""],
-    "2025-10-07": ["Midterm Review", "Core Concepts", "Kahoot + Quiz", ""],
-    "2025-10-09": ["Midterm", "", "In-Class Test", ""]
+    "2025-09-16": [
+        "Functions",
+        "Parameters, Return",
+        "Practice Quiz",
+        "HW1 Due"
+    ],
+    "2025-09-18": [
+        "Review",
+        "All Topics",
+        '<a href="https://forms.gle/your-form-link" target="_blank">🔗 Peer Review Form</a>',
+        ""
+    ]
 }
 
+# ✅ STEP 2: Build the markdown table
 table_md = ""
 
 for week in range(16):
@@ -37,23 +39,23 @@ for week in range(16):
     tuesday = start_date + timedelta(weeks=week)
     thursday = tuesday + timedelta(days=2)
 
-    # Format dates
+    # Date strings for lookup and display
     tuesday_key = tuesday.strftime('%Y-%m-%d')
     thursday_key = thursday.strftime('%Y-%m-%d')
 
-    # Red highlight only for Oct 7 and 9 (Week 6)
-    def style_date(date_obj):
-        if date_obj.strftime('%Y-%m-%d') in ["2025-10-07", "2025-10-09"]:
+    def format_date(date_obj):
+        date_str = date_obj.strftime('%Y-%m-%d')
+        if date_str in ["2025-10-07", "2025-10-09"]:  # Week 6
             return f"<span style='color:red'>{date_obj.strftime('%b. %d')}</span>"
         return date_obj.strftime('%b. %d')
 
-    # Look up content or default to blank
+    # Get content or use blanks
     tue_data = schedule_content.get(tuesday_key, ["", "", "", ""])
     thu_data = schedule_content.get(thursday_key, ["", "", "", ""])
 
     # Add the two rows
-    table_md += f"| {style_date(tuesday)} | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
-    table_md += f"| {style_date(thursday)} | {thu_data[0]} | {thu_data[1]} | {thu_data[2]} | {thu_data[3]} |\n"
+    table_md += f"| {format_date(tuesday)} | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
+    table_md += f"| {format_date(thursday)} | {thu_data[0]} | {thu_data[1]} | {thu_data[2]} | {thu_data[3]} |\n"
 
-# Display the table
+# ✅ STEP 3: Display it
 st.markdown(table_md, unsafe_allow_html=True)
