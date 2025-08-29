@@ -3,7 +3,7 @@ import requests
 import re
 
 st.set_page_config(page_title="Lecture Slide Player — Chapter 1", layout="wide")
-st.title("📚 Lecture Slide Player — Chapter 1")
+st.header("📚 Lecture Slide Player — Chapter 1")
 
 # ------------ CONFIG ------------
 GITHUB_OWNER  = "MK316"
@@ -71,7 +71,7 @@ with st.sidebar:
     )
     display_width = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH_DEFAULT, step=50)
 
-st.divider()
+# st.divider()
 
 # ===== Main area: slide + caption =====
 idx = st.session_state.slide_idx
