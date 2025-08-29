@@ -69,31 +69,50 @@ def clamp(i: int) -> int:
     return max(0, min(len(slides) - 1, i))
 
 
-# ===== Controls row (aligned) =====
-c1, c2, c3 = st.columns([1, 2, 1], vertical_alignment="center")
+# ---- Controls (3 equal boxes, same size, no labels) ----
+# CSS: unify widget heights & remove extra spacing
+st.markdown("""
+<style>
+/* Equalize heights */
+.stButton > button { height: 3.2rem; }
+div[data-testid="stNumberInput"] input { height: 3.2rem; }
+
+/* Ensure number input uses full width inside its column */
+div[data-testid="stNumberInput"] > div { width: 100%; }
+
+/* Optional: hide the little ? tooltip icon if any */
+[data-testid="stNumberInput"] [data-testid="stTooltipIcon"] { display: none !important; }
+
+/* Reduce top space around widgets a bit */
+.block-container { padding-top: 1rem; }
+</style>
+""", unsafe_allow_html=True)
+
+# Three equal columns
+c1, c2, c3 = st.columns(3, vertical_alignment="center")
 
 with c1:
-    st.markdown("**Previous**")
-    if st.button("⬅️ Previous", use_container_width=True):
+    if st.button("⬅️ Previous", use_container_width=True, key="prev_btn"):
         st.session_state.slide_idx = clamp(st.session_state.slide_idx - 1)
 
-with c3:
-    st.markdown("**Next**")
-    if st.button("Next ➡️", use_container_width=True):
-        st.session_state.slide_idx = clamp(st.session_state.slide_idx + 1)
-
 with c2:
-    st.markdown("**Jump to slide**")
     cur = st.session_state.slide_idx + 1
     jump = st.number_input(
-        label="",              # no label inside the widget
+        label="",                      # no visible label
         min_value=1,
         max_value=len(slides),
         value=cur,
-        step=1                 # <-- removed `help=...` to kill the "?"
+        step=1,
+        label_visibility="collapsed",  # hide label spacing
+        key="jump_num",
     )
     if jump != cur:
         st.session_state.slide_idx = int(jump) - 1
+
+with c3:
+    if st.button("Next ➡️", use_container_width=True, key="next_btn"):
+        st.session_state.slide_idx = clamp(st.session_state.slide_idx + 1)
+
 
 
 st.divider()
