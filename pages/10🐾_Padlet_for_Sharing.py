@@ -6,4 +6,4 @@ st.markdown("""
     This Padlet serves as a dynamic hub for Q & As regarding the course.   
     Personal inquiries can be directred via E-mail at _mirankim@gnu.ac.kr_  
     """)
-st.components.v1.iframe("https://padlet.com/mirankim316/engphonetics", width=700, height=600)
+st.components.v1.iframe("https://padlet.com/mirankim316/engphonetics", width=800, height=600)
