@@ -66,53 +66,39 @@ schedule_content = {
 # ✅ STEP 2: Build the markdown table
 table_md = ""
 
+table_md = ""
+
 for week in range(16):
-    # 1) Decide emoji/tag FIRST
+    # --- choose emoji/tag first ---
     if 7 <= (week + 1) <= 11:
-        emoji = "💙"
-        tag = " (Academic trip)"
+        emoji, tag = "💙", " (Academic trip)"
     else:
-        emoji = "🗓️"
-        tag = ""
+        emoji, tag = "🗓️", ""
 
-    # 2) Build label AFTER deciding emoji
+    # --- label & header (once) ---
     week_label = f"**{emoji} Week {week + 1:02d}{tag}**"
-
-    # 3) Append label and header ONCE
     table_md += f"\n{week_label}\n\n"
     table_md += table_header + table_divider
 
-    # Tuesday and Thursday of the current week
-    tuesday = start_date + timedelta(weeks=week)
+    # --- dates for this week ---
+    tuesday  = start_date + timedelta(weeks=week)
     thursday = tuesday + timedelta(days=2)
 
-    # Keys for dictionary lookup
-    tuesday_key = tuesday.strftime('%Y-%m-%d')
-    thursday_key = thursday.strftime('%Y-%m-%d')
+    # --- format date (red for Oct 7 & 9 only) ---
+    def format_date(d):
+        s = d.strftime("%Y-%m-%d")
+        if s in ("2025-10-07", "2025-10-09"):
+            return f"<span style='color:red'>{d.strftime('%b. %d')}</span>"
+        return d.strftime("%b. %d")
 
-    # Red highlight for Oct. 7 & 9 (Week 6)
-    def format_date(date_obj):
-        date_str = date_obj.strftime('%Y-%m-%d')
-        if date_str in ("2025-10-07", "2025-10-09"):
-            return f"<span style='color:red'>{date_obj.strftime('%b. %d')}</span>"
-        return date_obj.strftime('%b. %d')
+    # --- fetch content once for each date ---
+    tue_data = schedule_content.get(tuesday.strftime("%Y-%m-%d"),  ["", "", "", ""])
+    thu_data = schedule_content.get(thursday.strftime("%Y-%m-%d"), ["", "", "", ""])
 
-    # Pull content (or empty) from your schedule_content dict
-    tue_data = schedule_content.get(tuesday_key, ["", "", "", ""])
-    thu_data = schedule_content.get(thursday_key, ["", "", "", ""])
-
-    # Add rows
-    table_md += f"| {format_date(tuesday)} | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
+    # --- append EXACTLY TWO ROWS (do not append anywhere else) ---
+    table_md += f"| {format_date(tuesday)}  | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
     table_md += f"| {format_date(thursday)} | {thu_data[0]} | {thu_data[1]} | {thu_data[2]} | {thu_data[3]} |\n"
 
-
-    # Get content or use blanks
-    tue_data = schedule_content.get(tuesday_key, ["", "", "", ""])
-    thu_data = schedule_content.get(thursday_key, ["", "", "", ""])
-
-    # Add the two rows
-    table_md += f"| {format_date(tuesday)} | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
-    table_md += f"| {format_date(thursday)} | {thu_data[0]} | {thu_data[1]} | {thu_data[2]} | {thu_data[3]} |\n"
 
 # ✅ STEP 3: Display it
 st.markdown(table_md, unsafe_allow_html=True)
