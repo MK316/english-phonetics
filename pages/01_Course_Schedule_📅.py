@@ -71,7 +71,7 @@ table_md = ""
 for week in range(16):
     # --- choose emoji/tag first ---
     if 7 <= (week + 1) <= 11:
-        emoji, tag = "💙", " (Academic trip)"
+        emoji, tag = "💙", " (Academic trip) 〽️ 〽️ 〽️ 〽️ 〽️ 〽️ 〽️"
     else:
         emoji, tag = "🗓️", ""
 
