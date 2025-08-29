@@ -77,7 +77,7 @@ with st.sidebar:
     # Optional: quick width tweak so it fits without scrolling on different screens
     DISPLAY_WIDTH = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH, step=50)
 
-st.divider()
+# st.divider()
 
 # ===== Main area: slide + thumbnails =====
 idx = st.session_state.slide_idx
