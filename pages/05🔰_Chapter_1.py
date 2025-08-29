@@ -41,14 +41,22 @@ if not slides:
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
 if "jump_num" not in st.session_state:
-    st.session_state.jump_num = 1  # human-friendly 1-based
+    st.session_state.jump_num = 1  # 1-based for humans
+if "last_idx_for_jump" not in st.session_state:
+    st.session_state.last_idx_for_jump = -1
 
 def clamp(i: int) -> int:
     return max(0, min(len(slides) - 1, i))
 
 def sync_from_jump():
-    """Update slide_idx when jump_num changes (single click on +/-)."""
+    """When the number input changes, update slide_idx immediately."""
     st.session_state.slide_idx = clamp(int(st.session_state.jump_num) - 1)
+    st.session_state.last_idx_for_jump = st.session_state.slide_idx
+
+# --- IMPORTANT: keep jump_num in sync BEFORE rendering the widget ---
+if st.session_state.last_idx_for_jump != st.session_state.slide_idx:
+    st.session_state.jump_num = st.session_state.slide_idx + 1
+    st.session_state.last_idx_for_jump = st.session_state.slide_idx
 
 # ===== Sidebar controls =====
 with st.sidebar:
@@ -59,14 +67,11 @@ with st.sidebar:
         max_value=len(slides),
         step=1,
         key="jump_num",
-        on_change=sync_from_jump,   # <-- immediate sync, no double click
+        on_change=sync_from_jump,   # single click on +/- works
     )
     display_width = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH_DEFAULT, step=50)
 
 st.divider()
-
-# Keep jump box & slide index in sync if the index changed elsewhere
-st.session_state.jump_num = st.session_state.slide_idx + 1
 
 # ===== Main area: slide + caption =====
 idx = st.session_state.slide_idx
@@ -76,4 +81,11 @@ st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slid
 with st.expander("Thumbnails"):
     n = min(THUMB_MAX, len(slides))
     cols = st.columns(THUMB_COLS if n >= THUMB_COLS else n)
-    thumb_wi_
+    thumb_width = int(display_width / THUMB_COLS) if THUMB_COLS else 120
+    for i in range(n):
+        col = cols[i % len(cols)]
+        with col:
+            if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
+                st.session_state.slide_idx = i
+                # no direct write to jump_num here; the top sync will update it on rerun
+            col.image(slides[i], width=thumb_width)
