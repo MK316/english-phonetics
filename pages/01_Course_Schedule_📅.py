@@ -29,8 +29,8 @@ start_date = datetime(2025, 9, 2)
 
 # ✅ STEP 1: Fill only the weeks you want — here, Week 3 has data (Sept. 16 & 18)
 schedule_content = {
-    "2025-09-02": ["9/2 (T)", "Ch. 1", "Introduction", ""],
-    "2025-09-04": ["9/4 (Th)", "", "", ""],
+    "2025-09-02": ["Ch. 1", "Introduction", "", ""],
+    "2025-09-04": ["Ch. 1", "", "",""],
     "2025-09-09": ["", "", "", ""],
     "2025-09-11": ["", "", "", ""],
     "2025-09-16": ["", "", "", ""],
