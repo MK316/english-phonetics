@@ -2,7 +2,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 
 st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
-st.title("📘 Course Schedule")
+st.markdown("### 📘 Course Schedule")
 
 # Column headers
 table_header = "| Date | Chapter | Keywords | Assignments & Activities | Remark |\n"
