@@ -1,44 +1,37 @@
 import streamlit as st
+from datetime import datetime, timedelta
 
+st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
 st.title("📘 Course Schedule")
 
-# Define schedule data
-schedule = {
-    "Week 01": ["Mar 4", "Intro to Course", "Ice-breaker", "Set up GitHub"],
-    "Week 02": ["Mar 11", "Digital Literacy", "Discussion", "Survey 1"],
-    "Week 03": ["Mar 18", "Basic Python", "Jupyter Notebook", "HW1 due"],
-    "Week 04": ["Mar 25", "Variables & Input", "Practice", "HW2 out"],
-    "Week 05": ["Apr 1", "Control Structures", "Coding Quiz", ""],
-    "Week 06": ["Apr 8", "Functions", "In-class demo", "Group task start"],
-    "Week 07": ["Apr 15", "App Design", "Wireframes", "Read article"],
-    "Week 08": ["Apr 22", "Midterm Project", "Team plan", "Presentation"],
-    "Week 09": ["Apr 29", "Streamlit Basics", "Example Apps", ""],
-    "Week 10": ["May 6", "Streamlit Inputs", "App Practice", "HW3 due"],
-    "Week 11": ["May 13", "App Polish", "Peer Review", ""],
-    "Week 12": ["May 20", "TTS & Audio", "Gradio intro", ""],
-    "Week 13": ["May 27", "App Deployment", "HuggingFace", "HW4 due"],
-    "Week 14": ["Jun 3", "Final App Work", "Group time", "Final push"],
-    "Week 15": ["Jun 10", "Final Presentation", "Team showcase", ""],
-    "Week 16": ["Jun 17", "Wrap-up", "Reflection", "Survey 2"],
-}
+# Table column header
+table_header = "| Date | Chapter | Keywords | Assignments & Activities | Remark |\n"
+table_divider = "|------|---------|----------|---------------------------|--------|\n"
 
-# Markdown table header
-table_md = """
-| Date | Topic | Task | Note |
-|------|-------|------|------|
-"""
+# Start date (Tuesday, Week 1)
+start_date = datetime(2025, 9, 2)
 
-# Generate markdown string
-full_md = ""
-week_num = 1
+# Placeholder data (customize as needed)
+chapters = [f"Chapter {i}" for i in range(1, 33)]
+keywords = ["Intro", "Digital", "Python", "Variables", "Loops", "Functions", "Design", "Project"] * 4
+activities = ["Lecture", "Quiz", "HW", "Group Work", "Discussion", "Coding", "Review", "Presentation"] * 4
+remarks = ["", "", "", "", "HW Due", "", "Group Time", "Midterm"] * 4
 
-for week, content in schedule.items():
-    # Add Week row
-    full_md += f"\n**🗓️ {week}**\n\n"
-    # Add table header
-    full_md += table_md
-    # Add content row
-    full_md += f"| {content[0]} | {content[1]} | {content[2]} | {content[3]} |\n"
+table_md = ""
 
-# Display the full table
-st.markdown(full_md)
+# Build week-by-week table
+for week in range(16):
+    week_label = f"**🗓️ Week {week + 1:02d}**"
+    table_md += f"\n{week_label}\n\n"
+    table_md += table_header + table_divider
+
+    # Tuesday row
+    tuesday = start_date + timedelta(weeks=week, days=0)
+    table_md += f"| {tuesday.strftime('%b. %d')} | {chapters[week * 2]} | {keywords[week * 2]} | {activities[week * 2]} | {remarks[week * 2]} |\n"
+
+    # Thursday row
+    thursday = tuesday + timedelta(days=2)
+    table_md += f"| {thursday.strftime('%b. %d')} | {chapters[week * 2 + 1]} | {keywords[week * 2 + 1]} | {activities[week * 2 + 1]} | {remarks[week * 2 + 1]} |\n"
+
+# Render table
+st.markdown(table_md)
