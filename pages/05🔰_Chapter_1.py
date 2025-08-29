@@ -2,25 +2,41 @@ import streamlit as st
 import requests
 import re
 
-st.set_page_config(page_title="Lecture Slides — Ch1", layout="wide")
+st.set_page_config(page_title="Lecture Slide Player — Chapter 1", layout="wide")
 st.title("📚 Lecture Slide Player — Chapter 1")
 
-# --- Your GitHub folder (public) ---
+# ------------ CONFIG ------------
 GITHUB_OWNER  = "MK316"
 GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
-FOLDER_PATH   = "pages/lecture/Ch1"   # where your JPEGs live
+FOLDER_PATH   = "pages/lecture/Ch1"   # your folder with JPEG/PNG slides
 VALID_EXTS    = (".png", ".jpg", ".jpeg", ".webp")
 
+# How wide to show the main slide (px). Tweak this if your users have smaller screens.
+DISPLAY_WIDTH = 900
+
+# How many thumbnails to show and their columns
+THUMB_MAX = 10
+THUMB_COLS = 10
+# --------------------------------
+
+# Small CSS to tighten spacing a bit
+st.markdown("""
+<style>
+/* tighten top margin on number input label */
+div[data-testid="stNumberInput"] label { margin-bottom: 0.25rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
+
 def natural_key(s: str):
-    """Sort key that treats numbers naturally: 1,2,10 (not 1,10,2)."""
+    """Natural sort: slide_2 before slide_10."""
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", s)]
+
 
 @st.cache_data(show_spinner=False, ttl=600)
 def list_github_images(owner: str, repo: str, folder: str, branch: str):
-    """
-    Return naturally-sorted RAW URLs + filenames for images in a GitHub folder.
-    """
+    """Return naturally-sorted RAW URLs + filenames for images in a GitHub folder."""
     api = f"https://api.github.com/repos/{owner}/{repo}/contents/{folder}?ref={branch}"
     r = requests.get(api, timeout=20)
     if r.status_code != 200:
@@ -33,6 +49,8 @@ def list_github_images(owner: str, repo: str, folder: str, branch: str):
     names = [f["name"] for f in files]
     return urls, names
 
+
+# Load slide list
 try:
     slides, filenames = list_github_images(GITHUB_OWNER, GITHUB_REPO, FOLDER_PATH, GITHUB_BRANCH)
 except Exception as e:
@@ -43,41 +61,53 @@ if not slides:
     st.warning("No image files found in the folder.")
     st.stop()
 
-# --- Session state ---
+# Session state
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
 
 def clamp(i: int) -> int:
     return max(0, min(len(slides) - 1, i))
 
-# --- Controls ---
-left, mid, right = st.columns([1, 2, 1])
-with left:
+
+# ===== Controls row (aligned) =====
+c1, c2, c3 = st.columns([1, 2, 1], vertical_alignment="center")
+
+with c1:
+    st.markdown("**Previous**")
     if st.button("⬅️ Previous", use_container_width=True):
         st.session_state.slide_idx = clamp(st.session_state.slide_idx - 1)
-with right:
+
+with c3:
+    st.markdown("**Next**")
     if st.button("Next ➡️", use_container_width=True):
         st.session_state.slide_idx = clamp(st.session_state.slide_idx + 1)
-with mid:
+
+with c2:
+    st.markdown("**Jump to slide**")
     cur = st.session_state.slide_idx + 1
-    jump = st.number_input("Jump to slide", min_value=1, max_value=len(slides), value=cur, step=1)
+    jump = st.number_input(
+        label="", min_value=1, max_value=len(slides), value=cur, step=1,
+        help="Enter a slide number and press Enter."
+    )
     if jump != cur:
         st.session_state.slide_idx = int(jump) - 1
 
-# --- Display ---
-idx = st.session_state.slide_idx
-st.markdown(
-    f"**Slide {idx + 1} / {len(slides)}** — *{filenames[idx]}*  \n"
-    f"<small><code>{slides[idx]}</code></small>",
-    unsafe_allow_html=True,
-)
-st.image(slides[idx], use_container_width=True, caption=f"Slide {idx + 1}")
+st.divider()
 
-# Optional thumbnails (first 10)
+# ===== Display current slide (smaller to avoid scrolling) =====
+idx = st.session_state.slide_idx
+st.markdown(f"**Slide {idx + 1} / {len(slides)}** — *{filenames[idx]}*")
+st.image(slides[idx], width=DISPLAY_WIDTH, caption=f"Slide {idx + 1}")
+
+# ===== Thumbnails (smaller) =====
 with st.expander("Thumbnails"):
-    cols = st.columns(min(10, len(slides)))
-    for i, c in enumerate(cols):
-        if i < len(slides):
-            if c.button(f"{i+1}", key=f"thumb_{i}"):
+    n = min(THUMB_MAX, len(slides))
+    cols = st.columns(THUMB_COLS if n >= THUMB_COLS else n)
+    for i in range(n):
+        col = cols[i % len(cols)]
+        with col:
+            if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
                 st.session_state.slide_idx = i
-            c.image(slides[i], use_container_width=True)
+            # Smaller thumbnail width so a row fits nicely
+            thumb_width = int(DISPLAY_WIDTH / THUMB_COLS) if THUMB_COLS else 120
+            col.image(slides[i], width=thumb_width)
