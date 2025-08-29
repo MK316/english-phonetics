@@ -81,9 +81,8 @@ with st.sidebar:
 
 # ===== Main area: slide + thumbnails =====
 idx = st.session_state.slide_idx
-st.markdown(f"**Slide {idx + 1} / {len(slides)}** — *{filenames[idx]}*")
 st.image(slides[idx], width=DISPLAY_WIDTH, caption=f"Slide {idx + 1}")
-
+st.markdown(f"**Slide {idx + 1} / {len(slides)}** — *{filenames[idx]}*")
 with st.expander("Thumbnails"):
     n = min(THUMB_MAX, len(slides))
     cols = st.columns(THUMB_COLS if n >= THUMB_COLS else n)
