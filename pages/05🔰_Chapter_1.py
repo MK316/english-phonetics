@@ -86,11 +86,15 @@ with c2:
     st.markdown("**Jump to slide**")
     cur = st.session_state.slide_idx + 1
     jump = st.number_input(
-        label="", min_value=1, max_value=len(slides), value=cur, step=1,
-        help="Enter a slide number and press Enter."
+        label="",              # no label inside the widget
+        min_value=1,
+        max_value=len(slides),
+        value=cur,
+        step=1                 # <-- removed `help=...` to kill the "?"
     )
     if jump != cur:
         st.session_state.slide_idx = int(jump) - 1
+
 
 st.divider()
 
