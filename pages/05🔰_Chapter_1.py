@@ -9,7 +9,7 @@ st.header("📚 Chapter 1: Articulation and acoustics")
 GITHUB_OWNER  = "MK316"
 GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
-FOLDER_PATH   = "pages/lecture/Ch1"
+FOLDER_PATH   = "pages/lecture/Ch01"
 VALID_EXTS    = (".png", ".jpg", ".jpeg", ".webp")
 DISPLAY_WIDTH_DEFAULT = 900
 THUMB_MAX, THUMB_COLS = 10, 10
