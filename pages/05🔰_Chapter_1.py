@@ -102,14 +102,8 @@ if not slides:
 # ---- Session state init ----
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
-if "jump_num" not in st.session_state:
-    st.session_state.jump_num = st.session_state.slide_idx + 1
-if "pending_jump" not in st.session_state:
-    st.session_state.pending_jump = False
 if "thumb_page" not in st.session_state:
     st.session_state.thumb_page = 1
-
-# View options (initialize once)
 if "fit_to_height" not in st.session_state:
     st.session_state.fit_to_height = True
 if "vh_percent" not in st.session_state:
@@ -117,38 +111,30 @@ if "vh_percent" not in st.session_state:
 if "display_width_px" not in st.session_state:
     st.session_state.display_width_px = 1000
 
-# ---- Helpers (define BEFORE callbacks) ----
 def clamp_index(i: int, n: int) -> int:
     """Clamp index i into [0, n-1]."""
     if n <= 0:
         return 0
     return max(0, min(n - 1, i))
 
-# If a thumbnail was clicked previously, sync jump_num BEFORE widgets render
-if st.session_state.pending_jump:
-    st.session_state.jump_num = st.session_state.slide_idx + 1
-    st.session_state.pending_jump = False
-
-def on_jump_change():
-    """Sync slide_idx when the number input changes."""
-    n = len(slides)
-    j = int(st.session_state.get("jump_num", 1))
-    st.session_state.slide_idx = clamp_index(j - 1, n)
-
 # ===== Sidebar controls =====
 with st.sidebar:
     st.subheader("Controls")
 
-    st.number_input(
+    # Not bound to Session State; we read the returned value
+    jump_val = st.number_input(
         "Jump to slide",
         min_value=1,
         max_value=len(slides),
         step=1,
-        key="jump_num",
-        on_change=on_jump_change,
+        value=st.session_state.slide_idx + 1,  # initial display only
     )
+    # If user changed, update slide_idx (no on_change, no key → no conflicts)
+    new_idx = clamp_index(jump_val - 1, len(slides))
+    if new_idx != st.session_state.slide_idx:
+        st.session_state.slide_idx = new_idx
 
-    # State-backed widgets (no default 'value=' passed)
+    # View options (state-backed widgets; no default 'value=' passed)
     st.toggle("Fit main slide to screen height", key="fit_to_height")
     if st.session_state.fit_to_height:
         st.slider("Height % of screen", 60, 95, key="vh_percent")
@@ -220,9 +206,7 @@ with st.expander("Thumbnails"):
             thumb_bytes = get_thumb_bytes(url)
             if st.button(f"{global_idx + 1}", key=f"thumb_btn_{global_idx}", use_container_width=True):
                 st.session_state.slide_idx = global_idx
-                st.session_state.pending_jump = True
             st.image(thumb_bytes, width=150)
-
 
 
 #---------- Previous code (working)
