@@ -77,7 +77,10 @@ with st.sidebar:
 idx = st.session_state.slide_idx
 st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
 
-# ===== Thumbnails =====
+# === Create a shadow state for jump_num to avoid direct conflict with the widget ===
+if "manual_jump_num" not in st.session_state:
+    st.session_state.manual_jump_num = st.session_state.jump_num
+
 with st.expander("Thumbnails"):
     n = min(THUMB_MAX, len(slides))
     cols = st.columns(THUMB_COLS if n >= THUMB_COLS else n)
@@ -88,7 +91,12 @@ with st.expander("Thumbnails"):
         with col:
             if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
                 st.session_state.slide_idx = i
-                st.session_state.jump_num = i + 1  # <- ✅ Update immediately for one-click behavior
-                st.session_state.last_idx_for_jump = i  # <- ✅ Keep in sync
+                st.session_state.manual_jump_num = i + 1  # Only update this, not the widget directly
+                st.session_state.last_idx_for_jump = i
             col.image(slides[i], width=thumb_width)
+
+# === After rendering widgets, update jump_num safely based on shadow variable ===
+if st.session_state.jump_num != st.session_state.manual_jump_num:
+    st.session_state.jump_num = st.session_state.manual_jump_num
+
 
