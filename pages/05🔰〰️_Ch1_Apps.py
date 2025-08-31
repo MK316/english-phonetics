@@ -11,7 +11,7 @@ tab1, tab2, tab3 = st.tabs(["💦 Videos", "💦 Web links", "💦 TBA"])
 # TAB 1 — Video links
 # =========================================================
 with tab1:
-    st.subheader("🎬 Lecture videos")
+    st.subheader("🎬 Useful Videos")
 
     # Sample video list (replace URLs/titles with yours)
     videos = [
