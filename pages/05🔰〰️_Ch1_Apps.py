@@ -1,8 +1,8 @@
 import streamlit as st
 
 # ---------- Page setup ----------
-st.set_page_config(page_title="Multi-App Template", page_icon="🧰", layout="wide")
-st.title("🧰 Multi-App Template")
+st.set_page_config(page_title="Multi-Apps", page_icon="🌀", layout="wide")
+st.title("🌀 Multi-Apps for Chapter 1")
 
 # ---------- Tabs ----------
 tab1, tab2, tab3 = st.tabs(["Vodeo", "Speech organ", "TBA"])
@@ -15,7 +15,7 @@ with tab1:
 
     # Sample video list (replace URLs/titles with yours)
     videos = [
-        {"title": "Ch1 Overview", "url": "https://youtu.be/s9AlgDyeO74"},
+        {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/embed/2k8fHR9jKVM?si=bQlOyoMNZEhnQ3Rf"},
         {"title": "Places of Articulation", "url": "https://youtu.be/2V-20Qe4M8Y"},
         {"title": "Manners of Articulation", "url": "https://youtu.be/4N3N1MlvVc4"},
     ]
