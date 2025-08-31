@@ -5,32 +5,31 @@ st.set_page_config(page_title="Multi-App Template", page_icon="🧰", layout="wi
 st.title("🧰 Multi-App Template")
 
 # ---------- Tabs ----------
-tab1, tab2, tab3 = st.tabs(["App 1", "App 2", "App 3"])
+tab1, tab2, tab3 = st.tabs(["Vodeo", "Speech organ", "TBA"])
 
 # =========================================================
-# TAB 1 — Template (form + controls + output)
+# TAB 1 — Video links
 # =========================================================
 with tab1:
-    st.subheader("App 1")
-    left, right = st.columns([1, 2], vertical_alignment="top")
+    st.subheader("🎬 Lecture videos")
 
-    with left:
-        st.markdown("**Controls**")
-        # Use a form so the app doesn't rerun on every keystroke
-        with st.form("app1_form", clear_on_submit=False):
-            text = st.text_input("Your text", key="app1_text")
-            choice = st.selectbox("Option", ["A", "B", "C"], key="app1_choice")
-            run = st.form_submit_button("Run", use_container_width=True)
-    with right:
-        st.markdown("**Output**")
-        if run:
-            st.success("App 1 ran successfully.")
-            st.write({"text": text, "choice": choice})
-        else:
-            st.info("Fill the controls on the left and click **Run**.")
+    # Sample video list (replace URLs/titles with yours)
+    videos = [
+        {"title": "Ch1 Overview", "url": "https://youtu.be/s9AlgDyeO74"},
+        {"title": "Places of Articulation", "url": "https://youtu.be/2V-20Qe4M8Y"},
+        {"title": "Manners of Articulation", "url": "https://youtu.be/4N3N1MlvVc4"},
+    ]
 
-    st.divider()
-    st.caption("➡️ Replace this tab's controls and output with your real App 1.")
+    titles = [v["title"] for v in videos]
+    choice = st.selectbox("Choose a video to play:", titles, key="tab1_video_choice")
+
+    # Get selected video dict
+    selected = next(v for v in videos if v["title"] == choice)
+
+    # Display player + link
+    st.video(selected["url"])
+    st.markdown(f"[🔗 Open on YouTube]({selected['url']})")
+
 
 # =========================================================
 # TAB 2 — Template (file uploader + preview)
