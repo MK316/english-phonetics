@@ -138,7 +138,7 @@ with st.sidebar:
 # ===== Main slide =====
 idx = st.session_state.slide_idx
 if fit_to_width:
-    st.image(slides[idx], use_column_width=True, caption=f"Slide {idx + 1} / {len(slides)}")
+    st.image(slides[idx], use_container_width=True, caption=f"Slide {idx + 1} / {len(slides)}")
 else:
     st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
 
