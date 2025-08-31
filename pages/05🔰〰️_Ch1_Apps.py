@@ -32,36 +32,11 @@ with tab1:
 
 
 # =========================================================
-# TAB 2 — Template (file uploader + preview)
+# TAB 2 — Web links
 # =========================================================
 with tab2:
-    st.subheader("App 2")
-    c1, c2 = st.columns([1, 2], vertical_alignment="top")
-
-    with c1:
-        uploaded = st.file_uploader(
-            "Upload a file (image or text)",
-            type=["png", "jpg", "jpeg", "gif", "webp", "txt", "md"],
-            key="app2_uploader",
-            accept_multiple_files=False
-        )
-        st.button("Clear", use_container_width=True, key="app2_clear")
-
-    with c2:
-        st.markdown("**Preview**")
-        if uploaded is None:
-            st.info("Upload an image (.png/.jpg/.jpeg/.gif/.webp) or a text file (.txt/.md).")
-        else:
-            if uploaded.type.startswith("image/"):
-                st.image(uploaded, use_container_width=True, caption=uploaded.name)
-            else:
-                # Text preview (first 2000 chars)
-                text = uploaded.read().decode(errors="ignore")
-                st.text_area("Text preview", value=text[:2000], height=300, label_visibility="collapsed")
-
-    st.divider()
-    st.caption("➡️ Swap this for your real App 2 (e.g., CSV viewer, analyzer, etc.).")
-
+    st.subheader("Web links")
+    st.markdown("🐾 [Textbook online](https://linguistics.berkeley.edu/acip/)")
 # =========================================================
 # TAB 3 — Template (notes + download)
 # =========================================================
