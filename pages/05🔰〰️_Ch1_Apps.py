@@ -51,7 +51,7 @@ def is_correct(num: int, user_text: str) -> bool:
     return False
 
 # ---------------- Tabs ----------------
-tab1, tab2, tab3 = st.tabs(["🌀 Vocal organ practice", "🌀 Tab 2 (coming soon)", "🌀 Tab 3 (coming soon)"])
+tab1, tab2, tab3 = st.tabs(["🌀 Vocal organs", "🌀 Tab 2 (coming soon)", "🌀 Tab 3 (coming soon)"])
 
 # =========================================================
 # TAB 1 — Image + 14 text boxes + single "Check answers"
