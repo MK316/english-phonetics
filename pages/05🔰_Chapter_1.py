@@ -10,16 +10,16 @@ st.header("Chapter 1: Articulation and Acoustics")
 GITHUB_OWNER  = "MK316"
 GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
-FOLDER_PATH   = "pages/lecture/Ch01"  # path inside the repo
+FOLDER_PATH   = "pages/lecture/Ch01"   # path inside the repo
 
-# Your confirmed filename pattern: F25_Ch01.001.png
+# Confirmed filenames like: F25_Ch01.001.png, F25_Ch01.002.png, ...
 FILENAME_PREFIX = "F25_Ch01."
 FILENAME_EXT    = ".png"
 START_INDEX     = 1
-END_INDEX       = 300          # upper bound to probe; adjust if needed
+END_INDEX       = 300          # upper bound to probe; set to your max (e.g., 120)
 
 DISPLAY_WIDTH_DEFAULT = 900
-THUMB_MAX, THUMB_COLS = 100, 10
+THUMB_MAX, THUMB_COLS = 20, 10
 TIMEOUT = 8  # seconds for HTTP checks
 # --------------------------------------------------
 
@@ -40,29 +40,21 @@ def _exists(url: str) -> bool:
 
 @st.cache_data(show_spinner=False, ttl=600)
 def discover_pngs_by_pattern(raw_base: str, prefix: str, ext: str, start_i: int, end_i: int):
-    """
-    Probe F25_Ch01.{i:03d}.png under the raw GitHub folder.
-    No GitHub API, no token. Returns (urls, names, debug_info).
-    """
+    """Probe F25_Ch01.{i:03d}.png under the raw GitHub folder (no GitHub API)."""
     found = []
-    tried = 0
     for i in range(start_i, end_i + 1):
         name = f"{prefix}{i:03d}{ext}"   # e.g., F25_Ch01.001.png
         url  = f"{raw_base}/{name}"
-        tried += 1
         if _exists(url):
             found.append((name, url))
-
-    if not found:
-        return [], [], {"tried": tried, "note": "No files matched F25_Ch01.{i:03d}.png"}
 
     found.sort(key=lambda x: natural_key(x[0]))
     names = [n for n, _ in found]
     urls  = [u for _, u in found]
-    return urls, names, {"count": len(urls), "first5": names[:5], "raw_base": raw_base}
+    return urls, names
 
-# ---------- Discover slides (no API) ----------
-slides, filenames, dbg = discover_pngs_by_pattern(
+# ---------- Discover slides ----------
+slides, filenames = discover_pngs_by_pattern(
     RAW_BASE, FILENAME_PREFIX, FILENAME_EXT, START_INDEX, END_INDEX
 )
 
@@ -72,29 +64,32 @@ if not slides:
         "• Verify the folder path and filename pattern.\n"
         "• If your files stop at a smaller number (e.g., 088), set END_INDEX accordingly."
     )
-    with st.expander("Debug info"):
-        st.write(dbg)
     st.stop()
 
-# with st.expander("Debug (hide later)"):
-#     st.write(dbg)
-
-# ---- State init ----
+# ---- Session state init ----
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
 if "jump_num" not in st.session_state:
     st.session_state.jump_num = st.session_state.slide_idx + 1
+if "pending_jump" not in st.session_state:
+    st.session_state.pending_jump = False  # set True after thumbnail click
 
 def clamp(i: int) -> int:
     return max(0, min(len(slides) - 1, i))
 
+# --- IMPORTANT: if a thumbnail was clicked in the previous run,
+# sync the number_input value BEFORE rendering the widget this run.
+if st.session_state.pending_jump:
+    st.session_state.jump_num = st.session_state.slide_idx + 1
+    st.session_state.pending_jump = False  # consumed
+
 def on_jump_change():
     st.session_state.slide_idx = clamp(int(st.session_state.jump_num) - 1)
 
-# ===== Sidebar =====
+# ===== Sidebar controls =====
 with st.sidebar:
     st.subheader("Controls")
-    # Do not pass value= when using key; avoids overwriting state on rerun
+    # Do not pass value= when using key; avoids overwriting state
     st.number_input(
         "Jump to slide",
         min_value=1,
@@ -105,11 +100,7 @@ with st.sidebar:
     )
     display_width = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH_DEFAULT, step=50)
 
-# keep widget in sync if slide_idx changed via thumbnails
-if st.session_state.jump_num != st.session_state.slide_idx + 1:
-    st.session_state.jump_num = st.session_state.slide_idx + 1
-
-# ===== Main viewer =====
+# ===== Main area: slide + caption =====
 idx = st.session_state.slide_idx
 st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
 
@@ -123,5 +114,8 @@ with st.expander("Thumbnails"):
         col = cols[i % len(cols)]
         with col:
             if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
-                st.session_state.slide_idx = i  # one-click
+                # Update the source-of-truth index
+                st.session_state.slide_idx = i
+                # Request that the jump widget be updated on the next run (before render)
+                st.session_state.pending_jump = True
             col.image(slides[i], width=thumb_width)
