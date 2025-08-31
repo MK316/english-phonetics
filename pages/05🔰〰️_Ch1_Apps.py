@@ -101,10 +101,10 @@ with tab1:
             st.session_state.quiz_answers[num] = user_input
             if num < TOTAL_ITEMS:
                 st.session_state.quiz_current = num + 1
-                st.experimental_rerun()
+                st._rerun()
             else:
                 st.session_state.quiz_done = True
-                st.experimental_rerun()
+                st._rerun()
 
     # --------- Results ---------
     else:
