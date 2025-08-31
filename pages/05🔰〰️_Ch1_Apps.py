@@ -37,6 +37,10 @@ with tab1:
 with tab2:
     st.subheader("Web links")
     st.markdown("🐾 [Textbook online](https://linguistics.berkeley.edu/acip/): This is a resource site managed by the Department of Linguistics at UC Berkeley for the textbook A Course in Phonetics. It contains materials related to the illustrations and exercises presented in the book.")
+    st.markdown("🐾 [How Does the Human Body Produce Voice and Speech?](https://www.youtube.com/embed/JF8rlKuSoFM?si=JSoICMOBWxrXdMn2): This video was provided by the National Institutes of Health.")
+    st.markdown("🐾 [How vocal folds work](https://www.youtube.com/embed/5QhVoaVUGmM?si=XNCbqRnVsG8oh8vS)")
+    st.markdown("🐾 [Vocal folds while singing](https://www.youtube.com/embed/-XGds2GAvGQ?si=a796eZI1vE87kiC3)")
+
 # =========================================================
 # TAB 3 — Template (notes + download)
 # =========================================================
