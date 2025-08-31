@@ -99,7 +99,7 @@ if not slides:
     )
     st.stop()
 
-# ---- Session state ----
+# ---- Session state init ----
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
 if "jump_num" not in st.session_state:
@@ -107,10 +107,16 @@ if "jump_num" not in st.session_state:
 if "pending_jump" not in st.session_state:
     st.session_state.pending_jump = False
 if "thumb_page" not in st.session_state:
-    st.session_state.thumb_page = 1  # pagination for thumbs
+    st.session_state.thumb_page = 1
 
-def clamp(i: int) -> int:
-    return max(0, min(len(slides) - 1, i))
+# NEW: defaults for view options (prevents AttributeError)
+if "fit_to_height" not in st.session_state:
+    st.session_state.fit_to_height = True
+if "vh_percent" not in st.session_state:
+    st.session_state.vh_percent = 88
+if "display_width_px" not in st.session_state:
+    st.session_state.display_width_px = 1000
+
 
 # If a thumbnail was clicked previously, sync jump_num BEFORE widgets render
 if st.session_state.pending_jump:
@@ -120,7 +126,6 @@ if st.session_state.pending_jump:
 def on_jump_change():
     st.session_state.slide_idx = clamp(int(st.session_state.jump_num) - 1)
 
-# ===== Sidebar controls =====
 with st.sidebar:
     st.subheader("Controls")
     st.number_input(
@@ -132,19 +137,18 @@ with st.sidebar:
         on_change=on_jump_change,
     )
 
-    # New: choose fit mode
-    fit_to_height = st.toggle("Fit main slide to screen height", value=True)
-    if fit_to_height:
-        vh = st.slider("Height % of screen", 60, 95, 88, step=1)
+    # Use the same keys we initialized above
+    st.toggle("Fit main slide to screen height", value=st.session_state.fit_to_height, key="fit_to_height")
+    if st.session_state.fit_to_height:
+        st.slider("Height % of screen", 60, 95, st.session_state.vh_percent, step=1, key="vh_percent")
     else:
-        # fallback manual width mode (if you prefer)
-        display_width = st.slider("Slide width (px)", 700, 1400, 1000, step=50)
+        st.slider("Slide width (px)", 700, 1400, st.session_state.display_width_px, step=50, key="display_width_px")
+
 
 # ===== Main slide =====
 idx = st.session_state.slide_idx
 
 if st.session_state.fit_to_height:
-    # Fit to viewport height; width scales automatically, preserving aspect ratio
     st.markdown(
         f"""
         <div style="display:flex;justify-content:center;">
