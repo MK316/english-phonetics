@@ -109,7 +109,7 @@ if "pending_jump" not in st.session_state:
 if "thumb_page" not in st.session_state:
     st.session_state.thumb_page = 1
 
-# NEW: defaults for view options (prevents AttributeError)
+# View options (initialize once)
 if "fit_to_height" not in st.session_state:
     st.session_state.fit_to_height = True
 if "vh_percent" not in st.session_state:
@@ -128,6 +128,7 @@ def on_jump_change():
 
 with st.sidebar:
     st.subheader("Controls")
+
     st.number_input(
         "Jump to slide",
         min_value=1,
@@ -137,12 +138,15 @@ with st.sidebar:
         on_change=on_jump_change,
     )
 
-    # Use the same keys we initialized above
-    st.toggle("Fit main slide to screen height", value=st.session_state.fit_to_height, key="fit_to_height")
+    # No 'value=' here; widget reads/writes st.session_state["fit_to_height"]
+    st.toggle("Fit main slide to screen height", key="fit_to_height")
+
     if st.session_state.fit_to_height:
-        st.slider("Height % of screen", 60, 95, st.session_state.vh_percent, step=1, key="vh_percent")
+        # No 'value='; uses st.session_state["vh_percent"]
+        st.slider("Height % of screen", 60, 95, key="vh_percent")
     else:
-        st.slider("Slide width (px)", 700, 1400, st.session_state.display_width_px, step=50, key="display_width_px")
+        # No 'value='; uses st.session_state["display_width_px"]
+        st.slider("Slide width (px)", 700, 1400, key="display_width_px")
 
 
 # ===== Main slide =====
