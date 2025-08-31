@@ -23,7 +23,7 @@ END_INDEX       = 120   # adjust to your max slide number
 
 # UI / perf
 THUMBS_PER_PAGE = 12     # how many thumbs to render at once
-THUMB_COLS      = 1      # columns in thumb grid
+THUMB_COLS      = 6      # columns in thumb grid
 THUMB_MAX_W     = 160    # pixel width of each thumb (small = faster)
 TIMEOUT         = 8      # seconds for HTTP requests
 # --------------------------------------------------
