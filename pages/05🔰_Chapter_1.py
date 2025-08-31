@@ -47,7 +47,7 @@ def discover_pngs_by_pattern(raw_base: str, prefix: str, ext: str, start_i: int,
     for i in range(start_i, end_i + 1):
         name = f"{prefix}{i:03d}{ext}"
         url  = f"{raw_base}/{name}"
-        # HEAD can be slower on some CDNs; do a quick GET of first bytes by streaming
+        # Quick existence check
         try:
             r = requests.get(url, stream=True, timeout=TIMEOUT)
             exists = r.status_code == 200
@@ -117,6 +117,12 @@ if "vh_percent" not in st.session_state:
 if "display_width_px" not in st.session_state:
     st.session_state.display_width_px = 1000
 
+# ---- Helpers (define BEFORE callbacks) ----
+def clamp_index(i: int, n: int) -> int:
+    """Clamp index i into [0, n-1]."""
+    if n <= 0:
+        return 0
+    return max(0, min(n - 1, i))
 
 # If a thumbnail was clicked previously, sync jump_num BEFORE widgets render
 if st.session_state.pending_jump:
@@ -124,8 +130,12 @@ if st.session_state.pending_jump:
     st.session_state.pending_jump = False
 
 def on_jump_change():
-    st.session_state.slide_idx = clamp(int(st.session_state.jump_num) - 1)
+    """Sync slide_idx when the number input changes."""
+    n = len(slides)
+    j = int(st.session_state.get("jump_num", 1))
+    st.session_state.slide_idx = clamp_index(j - 1, n)
 
+# ===== Sidebar controls =====
 with st.sidebar:
     st.subheader("Controls")
 
@@ -138,21 +148,18 @@ with st.sidebar:
         on_change=on_jump_change,
     )
 
-    # No 'value=' here; widget reads/writes st.session_state["fit_to_height"]
+    # State-backed widgets (no default 'value=' passed)
     st.toggle("Fit main slide to screen height", key="fit_to_height")
-
     if st.session_state.fit_to_height:
-        # No 'value='; uses st.session_state["vh_percent"]
         st.slider("Height % of screen", 60, 95, key="vh_percent")
     else:
-        # No 'value='; uses st.session_state["display_width_px"]
         st.slider("Slide width (px)", 700, 1400, key="display_width_px")
-
 
 # ===== Main slide =====
 idx = st.session_state.slide_idx
 
 if st.session_state.fit_to_height:
+    # Fit to viewport height; width scales automatically, preserving aspect ratio
     st.markdown(
         f"""
         <div style="display:flex;justify-content:center;">
@@ -180,7 +187,6 @@ else:
         caption=f"Slide {idx + 1} / {len(slides)}"
     )
 
-
 # ===== Thumbnails (paginated + optimized) =====
 with st.expander("Thumbnails"):
     total = len(slides)
@@ -205,16 +211,18 @@ with st.expander("Thumbnails"):
     page_urls = slides[start:end]
 
     cols = st.columns(min(THUMB_COLS, THUMBS_PER_PAGE))
+    col_count = len(cols)
     for local_i, url in enumerate(page_urls):
         global_idx = start + local_i
-        col = cols[local_i % len(cols)]
+        col = cols[local_i % col_count]
         with col:
-            # tiny, cached, recompressed thumbnail
+            # tiny, cached, recompressed thumbnail (fixed width => sharper)
             thumb_bytes = get_thumb_bytes(url)
             if st.button(f"{global_idx + 1}", key=f"thumb_btn_{global_idx}", use_container_width=True):
                 st.session_state.slide_idx = global_idx
                 st.session_state.pending_jump = True
             st.image(thumb_bytes, width=150)
+
 
 
 #---------- Previous code (working)
