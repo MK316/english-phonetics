@@ -90,7 +90,7 @@ with tab1:
         for i in range(1, TOTAL_ITEMS + 1, 2):
             # Left column: odd numbers
             with col_left:
-                label_i = f"{i}. Write the name of the speech organ for the number {i}"
+                label_i = f"{i}. Write the name for the number {i}"
                 st.session_state.answers[i] = st.text_input(
                     label_i,
                     value=st.session_state.answers.get(i, ""),
