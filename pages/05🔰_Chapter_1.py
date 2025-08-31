@@ -9,7 +9,7 @@ BRANCH = "main"
 FOLDER_PATH = "pages/lecture/Ch01"
 RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{BRANCH}/{FOLDER_PATH}"
 HTML_BASE = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/tree/{BRANCH}/{FOLDER_PATH}"
-VALID_EXT = ".png"
+VALID_EXT = ".PNG"
 THUMB_MAX, THUMB_COLS = 20, 10
 DISPLAY_WIDTH_DEFAULT = 900
 
