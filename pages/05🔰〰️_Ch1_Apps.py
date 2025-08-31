@@ -5,7 +5,7 @@ st.set_page_config(page_title="Multi-Apps", page_icon="🌀", layout="wide")
 st.title("🌀 Multi-Apps for Chapter 1")
 
 # ---------- Tabs ----------
-tab1, tab2, tab3 = st.tabs(["Vodeo", "Speech organ", "TBA"])
+tab1, tab2, tab3 = st.tabs(["💦 Videos", "💦 Web links", "💦 TBA"])
 
 # =========================================================
 # TAB 1 — Video links
