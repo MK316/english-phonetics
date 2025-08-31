@@ -175,7 +175,8 @@ with st.expander("Thumbnails"):
             if st.button(f"{global_idx + 1}", key=f"thumb_btn_{global_idx}", use_container_width=True):
                 st.session_state.slide_idx = global_idx
                 st.session_state.pending_jump = True
-            st.image(thumb_bytes, use_container_width=True)
+            st.image(thumb_bytes, width=150)
+
 
 #---------- Previous code (working)
 
