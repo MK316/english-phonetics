@@ -16,8 +16,9 @@ with tab1:
     # Sample video list (replace URLs/titles with yours)
     videos = [
         {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/embed/2k8fHR9jKVM?si=bQlOyoMNZEhnQ3Rf"},
-        {"title": "Places of Articulation", "url": "https://youtu.be/2V-20Qe4M8Y"},
-        {"title": "Manners of Articulation", "url": "https://youtu.be/4N3N1MlvVc4"},
+        {"title": "How vocal folds work", "url": "https://www.youtube.com/embed/5QhVoaVUGmM?si=XNCbqRnVsG8oh8vS"},
+        {"title": "How Does the Human Body Produce Voice and Speech?", "url": "https://www.youtube.com/embed/JF8rlKuSoFM?si=JSoICMOBWxrXdMn2"},
+        {"title": "Vocal folds while singing", "url": "https://www.youtube.com/embed/-XGds2GAvGQ?si=a796eZI1vE87kiC3"}
     ]
 
     titles = [v["title"] for v in videos]
@@ -37,9 +38,9 @@ with tab1:
 with tab2:
     st.subheader("Web links")
     st.markdown("🐾 [Textbook online](https://linguistics.berkeley.edu/acip/): This is a resource site managed by the Department of Linguistics at UC Berkeley for the textbook A Course in Phonetics. It contains materials related to the illustrations and exercises presented in the book.")
-    st.markdown("🐾 [How Does the Human Body Produce Voice and Speech?](https://www.youtube.com/embed/JF8rlKuSoFM?si=JSoICMOBWxrXdMn2): This video was provided by the National Institutes of Health.")
-    st.markdown("🐾 [How vocal folds work](https://www.youtube.com/embed/5QhVoaVUGmM?si=XNCbqRnVsG8oh8vS)")
-    st.markdown("🐾 [Vocal folds while singing](https://www.youtube.com/embed/-XGds2GAvGQ?si=a796eZI1vE87kiC3)")
+    #st.markdown("🐾 [](): This video was provided by the National Institutes of Health.")
+    #st.markdown("🐾 []()")
+    #st.markdown("🐾 []()")
 
 # =========================================================
 # TAB 3 — Template (notes + download)
