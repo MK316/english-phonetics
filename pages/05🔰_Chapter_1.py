@@ -131,16 +131,47 @@ with st.sidebar:
         key="jump_num",
         on_change=on_jump_change,
     )
-    fit_to_width = st.toggle("Fit image to available width", value=True)
-    if not fit_to_width:
+
+    # New: choose fit mode
+    fit_to_height = st.toggle("Fit main slide to screen height", value=True)
+    if fit_to_height:
+        vh = st.slider("Height % of screen", 60, 95, 88, step=1)
+    else:
+        # fallback manual width mode (if you prefer)
         display_width = st.slider("Slide width (px)", 700, 1400, 1000, step=50)
 
 # ===== Main slide =====
 idx = st.session_state.slide_idx
-if fit_to_width:
-    st.image(slides[idx], use_container_width=True, caption=f"Slide {idx + 1} / {len(slides)}")
+
+if st.session_state.fit_to_height:
+    # Fit to viewport height; width scales automatically, preserving aspect ratio
+    st.markdown(
+        f"""
+        <div style="display:flex;justify-content:center;">
+          <img
+            src="{slides[idx]}"
+            alt="Slide {idx + 1}"
+            style="
+              max-width: 100%;
+              max-height: {st.session_state.vh_percent}vh;
+              width: auto;
+              height: auto;
+              object-fit: contain;
+              display: block;
+            "
+          />
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.caption(f"Slide {idx + 1} / {len(slides)}")
 else:
-    st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
+    st.image(
+        slides[idx],
+        width=st.session_state.display_width_px,
+        caption=f"Slide {idx + 1} / {len(slides)}"
+    )
+
 
 # ===== Thumbnails (paginated + optimized) =====
 with st.expander("Thumbnails"):
