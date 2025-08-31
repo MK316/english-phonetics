@@ -4,7 +4,7 @@ import streamlit as st
 
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Basic applications", page_icon="🗣️", layout="wide")
-st.title("🗣️ Speech Organs — Image Quiz")
+st.title("🗣️ Understanding Speech Production")
 
 # ---------------- Config ----------------
 IMAGE_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/images/vocal_organ.png"
