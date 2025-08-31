@@ -19,7 +19,7 @@ START_INDEX     = 1
 END_INDEX       = 300          # upper bound to probe; set to your max (e.g., 120)
 
 DISPLAY_WIDTH_DEFAULT = 900
-THUMB_MAX, THUMB_COLS = 20, 10
+THUMB_MAX, THUMB_COLS = 40, 10
 TIMEOUT = 8  # seconds for HTTP checks
 # --------------------------------------------------
 
