@@ -12,20 +12,20 @@ TOTAL_ITEMS = 14
 
 # 👉 Edit to match your diagram labels (lowercase; include synonyms).
 ANSWER_KEY = {
-    1:  ["upper lip", "lip"],
-    2:  ["upper teeth", "teeth"],
-    3:  ["alveolar ridge", "alveolar"],
-    4:  ["hard palate", "palate"],
+    1:  ["upper lip"],
+    2:  ["upper teeth"],
+    3:  ["alveolar ridge"],
+    4:  ["hard palate"],
     5:  ["soft palate", "velum"],
     6:  ["uvula"],
-    7:  ["pharynx", "pharyngeal wall"],
-    8:  ["epiglottis"],
-    9:  ["glottis", "vocal folds", "vocal cords"],
-    10: ["tongue tip", "apex"],
-    11: ["tongue blade", "blade"],
-    12: ["tongue front", "front of tongue"],
-    13: ["tongue back", "dorsum", "back of tongue"],
-    14: ["larynx", "voice box"],
+    7:  ["epiglottis"],
+    8:  ["lower lip"],
+    9:  ["tongue tip","tip of the tongue"],
+    10: ["tongue blade", "blade of the tongue"],
+    11: ["front of the tongue", "tongue front"],
+    12: ["center of the tongue","tongue center"],
+    13: ["back of the tongue", "tongue back"],
+    14: ["tongue root", "root of the tongue"],
 }
 
 # ---------------- Helpers ----------------
