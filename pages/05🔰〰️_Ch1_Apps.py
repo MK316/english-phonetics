@@ -36,7 +36,7 @@ with tab1:
 # =========================================================
 with tab2:
     st.subheader("Web links")
-    st.markdown("🐾 [Textbook online](https://linguistics.berkeley.edu/acip/)")
+    st.markdown("🐾 [Textbook online](https://linguistics.berkeley.edu/acip/): This is a resource site managed by the Department of Linguistics at UC Berkeley for the textbook A Course in Phonetics. It contains materials related to the illustrations and exercises presented in the book.")
 # =========================================================
 # TAB 3 — Template (notes + download)
 # =========================================================
