@@ -6,88 +6,80 @@ import streamlit as st
 st.set_page_config(page_title="Lecture Slide Player - Chapter 1", layout="wide")
 st.header("Chapter 1: Articulation and Acoustics")
 
-# ------------ CONFIG ------------
+# ------------ CONFIG (edit as needed) ------------
 GITHUB_OWNER  = "MK316"
 GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
-FOLDER_PATH   = "pages/lecture/Ch01"   # case-sensitive path inside repo
-VALID_EXTS    = (".png", ".jpg", ".jpeg", ".webp")
+FOLDER_PATH   = "pages/lecture/Ch01"  # path inside the repo
+
+# Your confirmed filename pattern: F25_Ch01.001.png
+FILENAME_PREFIX = "F25_Ch01."
+FILENAME_EXT    = ".png"
+START_INDEX     = 1
+END_INDEX       = 300          # upper bound to probe; adjust if needed
+
 DISPLAY_WIDTH_DEFAULT = 900
 THUMB_MAX, THUMB_COLS = 20, 10
-# ---------------------------------
+TIMEOUT = 8  # seconds for HTTP checks
+# --------------------------------------------------
+
+RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_OWNER}/{GITHUB_REPO}/{GITHUB_BRANCH}/{FOLDER_PATH}"
 
 def natural_key(s: str):
-    # Sort like humans (slide2 before slide10)
+    # human sort: slide2 before slide10
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", s)]
 
-def _auth_headers():
-    # Optional: add GITHUB_TOKEN in Streamlit Secrets to avoid rate limits
-    # Settings -> Secrets: GITHUB_TOKEN = "ghp_xxx..."
-    token = st.secrets.get("GITHUB_TOKEN", None)
-    return {"Authorization": f"token {token}"} if token else {}
-
-def _raw_url(owner: str, repo: str, branch: str, path: str) -> str:
-    return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
+def _exists(url: str) -> bool:
+    try:
+        r = requests.head(url, timeout=TIMEOUT)
+        if r.status_code == 405:  # if HEAD blocked, try lightweight GET
+            r = requests.get(url, stream=True, timeout=TIMEOUT)
+        return r.status_code == 200
+    except Exception:
+        return False
 
 @st.cache_data(show_spinner=False, ttl=600)
-def list_images_via_trees(owner: str, repo: str, folder: str, branch: str):
+def discover_pngs_by_pattern(raw_base: str, prefix: str, ext: str, start_i: int, end_i: int):
     """
-    List all images under `folder` using GitHub git/trees API (recursive).
-    Works even when the contents API is rate-limited or paginated.
+    Probe F25_Ch01.{i:03d}.png under the raw GitHub folder.
+    No GitHub API, no token. Returns (urls, names, debug_info).
     """
-    headers = _auth_headers()
-    tree_api = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
-    r = requests.get(tree_api, headers=headers, timeout=30)
-    if r.status_code != 200:
-        raise RuntimeError(f"GitHub API error {r.status_code} while listing files.")
+    found = []
+    tried = 0
+    for i in range(start_i, end_i + 1):
+        name = f"{prefix}{i:03d}{ext}"   # e.g., F25_Ch01.001.png
+        url  = f"{raw_base}/{name}"
+        tried += 1
+        if _exists(url):
+            found.append((name, url))
 
-    data = r.json()
-    tree = data.get("tree", [])
+    if not found:
+        return [], [], {"tried": tried, "note": "No files matched F25_Ch01.{i:03d}.png"}
 
-    # Build a case-sensitive prefix match (Git paths are case-sensitive)
-    prefix = folder.strip("/") + "/"
+    found.sort(key=lambda x: natural_key(x[0]))
+    names = [n for n, _ in found]
+    urls  = [u for _, u in found]
+    return urls, names, {"count": len(urls), "first5": names[:5], "raw_base": raw_base}
 
-    hits = []
-    for it in tree:
-        if it.get("type") != "blob":
-            continue
-        p = it.get("path", "")
-        if not p.startswith(prefix):
-            continue
-        low = p.lower()
-        if not low.endswith(VALID_EXTS):
-            continue
-        hits.append(p)
-
-    # Sort by human order on the file's basename
-    hits.sort(key=lambda p: natural_key(p.rsplit("/", 1)[-1]))
-
-    urls  = [_raw_url(owner, repo, branch, p) for p in hits]
-    names = [p.rsplit("/", 1)[-1] for p in hits]
-    return urls, names, {"hits": len(hits), "sample": hits[:5]}
-
-# ---------- Load slide list ----------
-try:
-    slides, filenames, dbg = list_images_via_trees(GITHUB_OWNER, GITHUB_REPO, FOLDER_PATH, GITHUB_BRANCH)
-except Exception as e:
-    st.error(f"Could not list images: {e}")
-    st.info(
-        "Tips:\n"
-        "- Verify GITHUB_OWNER / GITHUB_REPO / GITHUB_BRANCH / FOLDER_PATH\n"
-        "- Add GITHUB_TOKEN in Secrets to avoid rate limits\n"
-        "- Ensure files end with .png/.jpg/.jpeg/.webp"
-    )
-    st.stop()
+# ---------- Discover slides (no API) ----------
+slides, filenames, dbg = discover_pngs_by_pattern(
+    RAW_BASE, FILENAME_PREFIX, FILENAME_EXT, START_INDEX, END_INDEX
+)
 
 if not slides:
-    st.warning("No image files found in the specified folder.")
+    st.error(
+        "No PNG files discovered with the pattern F25_Ch01.{i:03d}.png.\n"
+        "• Verify the folder path and filename pattern.\n"
+        "• If your files stop at a smaller number (e.g., 088), set END_INDEX accordingly."
+    )
+    with st.expander("Debug info"):
+        st.write(dbg)
     st.stop()
 
-# Optional small debug panel (hide later)
-with st.expander("Debug"):
+with st.expander("Debug (hide later)"):
     st.write(dbg)
 
-# ---- Session state init ----
+# ---- State init ----
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
 if "jump_num" not in st.session_state:
@@ -99,10 +91,10 @@ def clamp(i: int) -> int:
 def on_jump_change():
     st.session_state.slide_idx = clamp(int(st.session_state.jump_num) - 1)
 
-# ===== Sidebar controls =====
+# ===== Sidebar =====
 with st.sidebar:
     st.subheader("Controls")
-    # IMPORTANT: do not pass `value=` when using key to avoid overwriting state
+    # Do not pass value= when using key; avoids overwriting state on rerun
     st.number_input(
         "Jump to slide",
         min_value=1,
@@ -113,11 +105,11 @@ with st.sidebar:
     )
     display_width = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH_DEFAULT, step=50)
 
-# Keep jump widget in sync if slide_idx changed via thumbnails
+# keep widget in sync if slide_idx changed via thumbnails
 if st.session_state.jump_num != st.session_state.slide_idx + 1:
     st.session_state.jump_num = st.session_state.slide_idx + 1
 
-# ===== Main area: slide + caption =====
+# ===== Main viewer =====
 idx = st.session_state.slide_idx
 st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
 
@@ -131,5 +123,5 @@ with st.expander("Thumbnails"):
         col = cols[i % len(cols)]
         with col:
             if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
-                st.session_state.slide_idx = i  # one-click update
+                st.session_state.slide_idx = i  # one-click
             col.image(slides[i], width=thumb_width)
