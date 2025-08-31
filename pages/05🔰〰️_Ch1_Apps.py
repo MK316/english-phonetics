@@ -83,7 +83,7 @@ with tab1:
     st.divider()
 
     # ---- Input form with 14 boxes (two columns), each with question number label ----
-    st.subheader("Type all answers, then click **Check answers**")
+    st.subheader("Type all answers, then **'Check answers'**")
     with st.form("quiz_form"):
         col_left, col_right = st.columns(2)
 
