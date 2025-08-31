@@ -21,13 +21,19 @@ st.header("📚 Chapter 1: Articulation and Acoustics")
 def get_png_files_from_github_html():
     r = requests.get(HTML_BASE)
     if r.status_code != 200:
-        raise RuntimeError("Failed to load GitHub folder HTML")
+        raise RuntimeError(f"Failed to load GitHub folder HTML: {r.status_code}")
 
-    # Find all .png filenames (e.g., slide1.png, ch01_04.png, etc.)
-    matches = re.findall(r'href="[^"]+/' + re.escape(FOLDER_PATH) + r'/([^"]+\.png)"', r.text, re.IGNORECASE)
+    # Find all .png links in the folder HTML
+    matches = re.findall(r'href=".*?/' + re.escape(FOLDER_PATH) + r'/([^"]+\.png)"', r.text, re.IGNORECASE)
+    
+    # If still empty, fallback: match any .png link (safer)
+    if not matches:
+        matches = re.findall(r'href="[^"]+?/([^"/]+\.png)"', r.text, re.IGNORECASE)
+
     filenames = sorted(set(matches), key=lambda x: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', x)])
     urls = [f"{RAW_BASE}/{name}" for name in filenames]
     return urls, filenames
+
 
 # === Load images ===
 try:
