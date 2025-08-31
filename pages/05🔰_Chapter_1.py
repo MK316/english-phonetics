@@ -1,30 +1,44 @@
 import streamlit as st
+import requests
+import re
 
-# === SETTINGS ===
-TOTAL_SLIDES = 88
-SLIDE_PREFIX = "slide"
-SLIDE_EXT = ".png"
-DISPLAY_WIDTH_DEFAULT = 900
+# === CONFIG ===
+GITHUB_USER = "MK316"
+GITHUB_REPO = "english-phonetics"
+BRANCH = "main"
+FOLDER_PATH = "pages/lecture/Ch01"
+RAW_BASE = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/{BRANCH}/{FOLDER_PATH}"
+HTML_BASE = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/tree/{BRANCH}/{FOLDER_PATH}"
+VALID_EXT = ".png"
 THUMB_MAX, THUMB_COLS = 20, 10
-
-RAW_URL_BASE = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/lecture/Ch01"
+DISPLAY_WIDTH_DEFAULT = 900
 
 # === PAGE SETUP ===
-st.set_page_config(page_title="Lecture Slide Player — Chapter 1", layout="wide")
-st.header("📚 Chapter 1: Articulation and acoustics")
+st.set_page_config(page_title="Lecture Slide Viewer", layout="wide")
+st.header("📚 Chapter 1: Articulation and Acoustics")
 
-# === SLIDE URL BUILDER ===
-def build_slide_urls():
-    urls = []
-    names = []
-    for i in range(1, TOTAL_SLIDES + 1):
-        name = f"{SLIDE_PREFIX}{i:02d}{SLIDE_EXT}"
-        url = f"{RAW_URL_BASE}/{name}"
-        urls.append(url)
-        names.append(name)
-    return urls, names
+@st.cache_data(ttl=600)
+def get_png_files_from_github_html():
+    r = requests.get(HTML_BASE)
+    if r.status_code != 200:
+        raise RuntimeError("Failed to load GitHub folder HTML")
 
-slides, filenames = build_slide_urls()
+    # Find all .png filenames (e.g., slide1.png, ch01_04.png, etc.)
+    matches = re.findall(r'href="[^"]+/' + re.escape(FOLDER_PATH) + r'/([^"]+\.png)"', r.text, re.IGNORECASE)
+    filenames = sorted(set(matches), key=lambda x: [int(t) if t.isdigit() else t.lower() for t in re.split(r'(\d+)', x)])
+    urls = [f"{RAW_BASE}/{name}" for name in filenames]
+    return urls, filenames
+
+# === Load images ===
+try:
+    slides, filenames = get_png_files_from_github_html()
+except Exception as e:
+    st.error(f"❌ Could not load images.\n\n{e}")
+    st.stop()
+
+if not slides:
+    st.warning("No .png files found in the GitHub folder.")
+    st.stop()
 
 # === SESSION STATE INIT ===
 if "slide_idx" not in st.session_state:
@@ -49,11 +63,11 @@ with st.sidebar:
     )
     display_width = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH_DEFAULT, step=50)
 
-# === KEEP SLIDE-JUMP SYNCED ===
+# === Sync jump_num with slide_idx
 if "jump_num" not in st.session_state or st.session_state.jump_num != st.session_state.slide_idx + 1:
     st.session_state.jump_num = st.session_state.slide_idx + 1
 
-# === MAIN SLIDE ===
+# === MAIN DISPLAY ===
 idx = st.session_state.slide_idx
 st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
 
