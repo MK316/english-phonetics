@@ -27,9 +27,26 @@ with tab1:
     # Get selected video dict
     selected = next(v for v in videos if v["title"] == choice)
 
-    # Display player + link
-    st.video(selected["url"])
+    # Control video size
+    width = st.slider("Video width (px)", 400, 1000, 700, step=50)
+    height = int(width * 9 / 16)  # keep 16:9 ratio
+
+    st.markdown(
+        f"""
+        <div style="text-align: center;">
+            <iframe width="{width}" height="{height}" 
+                    src="{selected['url']}" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.markdown(f"[🔗 Open on YouTube]({selected['url']})")
+
 
 
 # =========================================================
