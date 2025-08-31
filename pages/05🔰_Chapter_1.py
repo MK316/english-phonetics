@@ -76,8 +76,8 @@ if not slides:
         st.write(dbg)
     st.stop()
 
-with st.expander("Debug (hide later)"):
-    st.write(dbg)
+# with st.expander("Debug (hide later)"):
+#     st.write(dbg)
 
 # ---- State init ----
 if "slide_idx" not in st.session_state:
