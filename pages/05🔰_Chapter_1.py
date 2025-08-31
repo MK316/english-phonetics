@@ -21,11 +21,14 @@ def natural_key(s: str):
 @st.cache_data(show_spinner=False, ttl=600)
 def list_all_github_images(owner: str, repo: str, folder: str, branch: str):
     """Handles GitHub API pagination to get all files in a folder"""
+    token = st.secrets.get("GITHUB_TOKEN", None)  # 👈 use from .streamlit/secrets.toml or fallback
+    headers = {"Authorization": f"token {token}"} if token else {}
+
     files = []
     page = 1
     while True:
         api = f"https://api.github.com/repos/{owner}/{repo}/contents/{folder}?ref={branch}&per_page=100&page={page}"
-        r = requests.get(api, timeout=20)
+        r = requests.get(api, headers=headers, timeout=20)
         if r.status_code != 200:
             raise RuntimeError(f"GitHub API error {r.status_code}. Check owner/repo/branch/path.\n{r.text[:200]}")
         batch = r.json()
@@ -35,11 +38,12 @@ def list_all_github_images(owner: str, repo: str, folder: str, branch: str):
         page += 1
 
     valid_files = [it for it in files if it.get("type") == "file" and it["name"].lower().endswith(VALID_EXTS)]
-    valid_files.sort(key=lambda x: natural_key(x["name"]))
+    valid_files.sort(key=lambda x: natural_key(it["name"]))
     raw_base = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{folder}"
     urls = [f"{raw_base}/{f['name']}" for f in valid_files]
     names = [f["name"] for f in valid_files]
     return urls, names
+
 
 # Load all slide images
 slides, filenames = list_all_github_images(GITHUB_OWNER, GITHUB_REPO, FOLDER_PATH, GITHUB_BRANCH)
