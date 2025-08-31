@@ -82,10 +82,13 @@ with st.expander("Thumbnails"):
     n = min(THUMB_MAX, len(slides))
     cols = st.columns(THUMB_COLS if n >= THUMB_COLS else n)
     thumb_width = int(display_width / THUMB_COLS) if THUMB_COLS else 120
+
     for i in range(n):
         col = cols[i % len(cols)]
         with col:
             if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
                 st.session_state.slide_idx = i
-                # no direct write to jump_num here; the top sync will update it on rerun
+                st.session_state.jump_num = i + 1  # <- ✅ Update immediately for one-click behavior
+                st.session_state.last_idx_for_jump = i  # <- ✅ Keep in sync
             col.image(slides[i], width=thumb_width)
+
