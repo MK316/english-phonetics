@@ -81,7 +81,7 @@ with tab1:
             st.session_state.quiz_current = 1
             st.session_state.quiz_answers = {}
             st.session_state.quiz_done = False
-            st.experimental_rerun()
+            st._rerun()
 
     st.divider()
 
