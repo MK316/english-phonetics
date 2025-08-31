@@ -74,7 +74,7 @@ with tabs[2]:
     default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/F25-roster-total-0831.csv"
 #    st.markdown(f"[📎 Sample File: S25DL-roster.csv]({default_url})")
 
-    uploaded_file = st.file_uploader("Upload your CSV file (optional)", type=["csv"])
+    uploaded_file = st.file_uploader("🌱 Step1: Upload your CSV file (optional)", type=["csv"])
 
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
@@ -88,10 +88,10 @@ with tabs[2]:
 
         # Step 1: Select Course
         course_list = df['Course'].dropna().unique().tolist()
-        selected_course = st.selectbox("📘 Select Course for Grouping", course_list)
+        selected_course = st.selectbox("🌱 Step 2: Select Course for Grouping", course_list)
 
         # Step 2: Group size input
-        st.markdown("### 💡 Group Settings (Currently 17 students: 3*3G and 4*2G")
+        st.markdown("### 🌱 Step3: Group Settings (Currently 17 students: 3*3G and 4*2G")
         num_group3 = st.number_input("Number of 3-member groups", min_value=0, step=1)
         num_group4 = st.number_input("Number of 4-member groups", min_value=0, step=1)
 
