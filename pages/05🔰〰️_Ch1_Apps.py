@@ -10,8 +10,7 @@ st.title("🗣️ Speech Organs — Image Quiz")
 IMAGE_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/images/vocal_organ.png"
 TOTAL_ITEMS = 14
 
-# ANSWER_KEY: map number -> list of accepted answers/synonyms (all lowercase).
-# 👉 Edit to match your diagram labels.
+# 👉 Edit to match your diagram labels (lowercase; include synonyms).
 ANSWER_KEY = {
     1:  ["upper lip", "lip"],
     2:  ["upper teeth", "teeth"],
@@ -31,12 +30,11 @@ ANSWER_KEY = {
 
 # ---------------- Helpers ----------------
 def normalize(s: str) -> str:
-    """Lowercase, remove accents & non-letters, collapse spaces/hyphens."""
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
     s = s.lower().strip()
-    s = re.sub(r"[\-_/]", " ", s)       # treat -, _, / as spaces
-    s = re.sub(r"[^a-z\s]", "", s)      # letters & spaces only
-    s = re.sub(r"\s+", " ", s).strip()  # collapse spaces
+    s = re.sub(r"[\-_/]", " ", s)
+    s = re.sub(r"[^a-z\s]", "", s)
+    s = re.sub(r"\s+", " ", s).strip()
     return s
 
 def is_correct(num: int, user_text: str) -> bool:
@@ -46,7 +44,6 @@ def is_correct(num: int, user_text: str) -> bool:
     guess = normalize(user_text)
     if guess in gold:
         return True
-    # tolerate plural 's' mismatch
     if guess.endswith("s") and guess[:-1] in gold:
         return True
     if (guess + "s") in gold:
@@ -54,7 +51,7 @@ def is_correct(num: int, user_text: str) -> bool:
     return False
 
 # ---------------- Tabs ----------------
-tab1, tab2, tab3 = st.tabs(["Vocal organ practice", "Tab 2 (coming soon)", "Tab 3 (coming soon)"])
+tab1, tab2, tab3 = st.tabs(["Quiz", "Tab 2 (coming soon)", "Tab 3 (coming soon)"])
 
 # =========================================================
 # TAB 1 — Image + 14 text boxes + single "Check answers"
@@ -63,7 +60,8 @@ with tab1:
     # Center the image
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
-        st.image(IMAGE_URL, use_container_width=True, caption="Refer to the numbers (1–14) on this diagram.")
+        st.image(IMAGE_URL, use_container_width=True,
+                 caption="Refer to the numbers (1–14) on this diagram.")
 
     # Per-session state (isolated per user)
     if "answers" not in st.session_state:
@@ -84,29 +82,42 @@ with tab1:
 
     st.divider()
 
-    # ---- Input form with 14 boxes (two columns) ----
+    # ---- Input form with 14 boxes (two columns), each with question number label ----
     st.subheader("Type all answers, then click **Check answers**")
     with st.form("quiz_form"):
         col_left, col_right = st.columns(2)
 
-        # left column: 1,3,5,...,13  |  right column: 2,4,6,...,14
         for i in range(1, TOTAL_ITEMS + 1, 2):
+            # Left column: odd numbers
             with col_left:
+                label_i = f"{i}. Write the name of the speech organ for the number {i}"
                 st.session_state.answers[i] = st.text_input(
-                    f"{i}.", value=st.session_state.answers.get(i, ""), key=f"ans_{i}", placeholder="Type here…"
+                    label_i,
+                    value=st.session_state.answers.get(i, ""),
+                    key=f"ans_{i}",
+                    placeholder="Type here…",
+                    label_visibility="visible",
                 )
+            # Right column: even numbers
             j = i + 1
             if j <= TOTAL_ITEMS:
                 with col_right:
+                    label_j = f"{j}. Write the name of the speech organ for the number {j}"
                     st.session_state.answers[j] = st.text_input(
-                        f"{j}.", value=st.session_state.answers.get(j, ""), key=f"ans_{j}", placeholder="Type here…"
+                        label_j,
+                        value=st.session_state.answers.get(j, ""),
+                        key=f"ans_{j}",
+                        placeholder="Type here…",
+                        label_visibility="visible",
                     )
 
         submitted = st.form_submit_button("Check answers", use_container_width=True)
 
     # ---- Evaluate & show results ----
     if submitted:
-        st.session_state.results = {n: is_correct(n, st.session_state.answers.get(n, "")) for n in range(1, TOTAL_ITEMS + 1)}
+        st.session_state.results = {
+            n: is_correct(n, st.session_state.answers.get(n, "")) for n in range(1, TOTAL_ITEMS + 1)
+        }
         st.session_state.checked = True
         st.rerun()
 
@@ -127,22 +138,14 @@ with tab1:
             })
         st.dataframe(rows, use_container_width=True, hide_index=True)
 
-        # Try again button
         if st.button("🧪 Try again", use_container_width=True):
             st.session_state.checked = False
             st.session_state.results = {}
-            # keep user's typed answers so they can edit; comment next line to keep
-            # st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
             st.rerun()
 
-# =========================================================
-# TAB 2 — placeholder
 # =========================================================
 with tab2:
     st.info("Tab 2 will be updated later.")
 
-# =========================================================
-# TAB 3 — placeholder
-# =========================================================
 with tab3:
     st.info("Tab 3 will be updated later.")
