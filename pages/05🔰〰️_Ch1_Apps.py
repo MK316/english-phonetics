@@ -10,8 +10,8 @@ st.title("🗣️ Speech Organs — Image Quiz")
 IMAGE_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/images/vocal_organ.png"
 TOTAL_ITEMS = 14
 
-# ANSWER_KEY: map number -> list of accepted answers/synonyms (all lowercase here).
-# 💡 Edit these to match your exact diagram labels.
+# ANSWER_KEY: map number -> list of accepted answers/synonyms (all lowercase).
+# 👉 Edit to match your diagram labels.
 ANSWER_KEY = {
     1:  ["upper lip", "lip"],
     2:  ["upper teeth", "teeth"],
@@ -44,10 +44,9 @@ def is_correct(num: int, user_text: str) -> bool:
         return False
     gold = [normalize(x) for x in ANSWER_KEY.get(num, [])]
     guess = normalize(user_text)
-    # exact among normalized synonyms
     if guess in gold:
         return True
-    # small extra: allow plural 's' mismatch (e.g., "vocal cord(s)")
+    # tolerate plural 's' mismatch
     if guess.endswith("s") and guess[:-1] in gold:
         return True
     if (guess + "s") in gold:
@@ -58,7 +57,7 @@ def is_correct(num: int, user_text: str) -> bool:
 tab1, tab2, tab3 = st.tabs(["Quiz", "Tab 2 (coming soon)", "Tab 3 (coming soon)"])
 
 # =========================================================
-# TAB 1 — Image + 14-question short-answer quiz
+# TAB 1 — Image + 14 text boxes + single "Check answers"
 # =========================================================
 with tab1:
     # Center the image
@@ -66,73 +65,75 @@ with tab1:
     with c2:
         st.image(IMAGE_URL, use_container_width=True, caption="Refer to the numbers (1–14) on this diagram.")
 
-    # --------- per-session state (isolated per user) ---------
-    if "quiz_current" not in st.session_state:
-        st.session_state.quiz_current = 1                # which number we're asking now
-    if "quiz_answers" not in st.session_state:
-        st.session_state.quiz_answers = {}               # number -> user's raw answer
-    if "quiz_done" not in st.session_state:
-        st.session_state.quiz_done = False
+    # Per-session state (isolated per user)
+    if "answers" not in st.session_state:
+        st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
+    if "checked" not in st.session_state:
+        st.session_state.checked = False
+    if "results" not in st.session_state:
+        st.session_state.results = {}
 
-    # Reset button
-    reset_cols = st.columns([1, 6, 1])
-    with reset_cols[0]:
-        if st.button("🔄 Reset quiz", use_container_width=True):
-            st.session_state.quiz_current = 1
-            st.session_state.quiz_answers = {}
-            st.session_state.quiz_done = False
+    # Reset
+    top = st.columns([1, 6, 1])
+    with top[0]:
+        if st.button("🔄 Reset", use_container_width=True):
+            st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
+            st.session_state.checked = False
+            st.session_state.results = {}
             st.rerun()
 
     st.divider()
 
-    # --------- Quiz flow ---------
-    if not st.session_state.quiz_done:
-        num = st.session_state.quiz_current
-        st.subheader(f"Question {num} of {TOTAL_ITEMS}")
-        st.write(f"**Write the name of the speech organ for the number {num}.**")
+    # ---- Input form with 14 boxes (two columns) ----
+    st.subheader("Type all answers, then click **Check answers**")
+    with st.form("quiz_form"):
+        col_left, col_right = st.columns(2)
 
-        # Use a unique key per question so the input clears when advancing
-        ans_key = f"answer_q{num}"
-        with st.form(key=f"form_q{num}", clear_on_submit=True):
-            user_input = st.text_input("Your answer:", key=ans_key, placeholder="Type here…")
-            submitted = st.form_submit_button("Submit", use_container_width=True)
+        # left column: 1,3,5,...,13  |  right column: 2,4,6,...,14
+        for i in range(1, TOTAL_ITEMS + 1, 2):
+            with col_left:
+                st.session_state.answers[i] = st.text_input(
+                    f"{i}.", value=st.session_state.answers.get(i, ""), key=f"ans_{i}", placeholder="Type here…"
+                )
+            j = i + 1
+            if j <= TOTAL_ITEMS:
+                with col_right:
+                    st.session_state.answers[j] = st.text_input(
+                        f"{j}.", value=st.session_state.answers.get(j, ""), key=f"ans_{j}", placeholder="Type here…"
+                    )
 
-        if submitted:
-            st.session_state.quiz_answers[num] = user_input
-            if num < TOTAL_ITEMS:
-                st.session_state.quiz_current = num + 1
-                st.rerun()
-            else:
-                st.session_state.quiz_done = True
-                st.rerun()
+        submitted = st.form_submit_button("Check answers", use_container_width=True)
 
-    # --------- Results ---------
-    else:
-        st.subheader("Results")
-        # Build a small table of correctness
+    # ---- Evaluate & show results ----
+    if submitted:
+        st.session_state.results = {n: is_correct(n, st.session_state.answers.get(n, "")) for n in range(1, TOTAL_ITEMS + 1)}
+        st.session_state.checked = True
+        st.rerun()
+
+    if st.session_state.checked:
+        correct_count = sum(1 for ok in st.session_state.results.values() if ok)
+        st.success(f"Score: **{correct_count} / {TOTAL_ITEMS}**")
+
         rows = []
-        correct_count = 0
         for n in range(1, TOTAL_ITEMS + 1):
-            user = st.session_state.quiz_answers.get(n, "")
-            ok = is_correct(n, user)
-            correct_count += 1 if ok else 0
+            user = st.session_state.answers.get(n, "")
+            ok = st.session_state.results.get(n, False)
             gold_display = ", ".join(ANSWER_KEY.get(n, [])) or "(set me in ANSWER_KEY)"
             rows.append({
                 "No.": n,
                 "Your answer": user if user else "—",
-                "Correct answers (accepted)": gold_display,
+                "Accepted answers": gold_display,
                 "Result": "✅ Correct" if ok else "❌ Incorrect",
             })
-
-        st.success(f"Score: **{correct_count} / {TOTAL_ITEMS}**")
         st.dataframe(rows, use_container_width=True, hide_index=True)
 
-        # Retake
-        if st.button("🧪 Retake quiz", use_container_width=True):
-            st.session_state.quiz_current = 1
-            st.session_state.quiz_answers = {}
-            st.session_state.quiz_done = False
-            st.experimental_rerun()
+        # Try again button
+        if st.button("🧪 Try again", use_container_width=True):
+            st.session_state.checked = False
+            st.session_state.results = {}
+            # keep user's typed answers so they can edit; comment next line to keep
+            # st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
+            st.rerun()
 
 # =========================================================
 # TAB 2 — placeholder
