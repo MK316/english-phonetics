@@ -37,26 +37,15 @@ slides, filenames = list_github_images(GITHUB_OWNER, GITHUB_REPO, FOLDER_PATH, G
 if not slides:
     st.warning("No image files found in the folder."); st.stop()
 
-# ---- Session state ----
+# ---- Session state init ----
 if "slide_idx" not in st.session_state:
     st.session_state.slide_idx = 0
-if "jump_num" not in st.session_state:
-    st.session_state.jump_num = 1  # 1-based for humans
-if "last_idx_for_jump" not in st.session_state:
-    st.session_state.last_idx_for_jump = -1
 
 def clamp(i: int) -> int:
     return max(0, min(len(slides) - 1, i))
 
 def sync_from_jump():
-    """When the number input changes, update slide_idx immediately."""
     st.session_state.slide_idx = clamp(int(st.session_state.jump_num) - 1)
-    st.session_state.last_idx_for_jump = st.session_state.slide_idx
-
-# --- IMPORTANT: keep jump_num in sync BEFORE rendering the widget ---
-if st.session_state.last_idx_for_jump != st.session_state.slide_idx:
-    st.session_state.jump_num = st.session_state.slide_idx + 1
-    st.session_state.last_idx_for_jump = st.session_state.slide_idx
 
 # ===== Sidebar controls =====
 with st.sidebar:
@@ -66,21 +55,17 @@ with st.sidebar:
         min_value=1,
         max_value=len(slides),
         step=1,
+        value=st.session_state.slide_idx + 1,
         key="jump_num",
-        on_change=sync_from_jump,   # single click on +/- works
+        on_change=sync_from_jump,
     )
     display_width = st.slider("Slide width (px)", 700, 1100, DISPLAY_WIDTH_DEFAULT, step=50)
-
-# st.divider()
 
 # ===== Main area: slide + caption =====
 idx = st.session_state.slide_idx
 st.image(slides[idx], width=display_width, caption=f"Slide {idx + 1} / {len(slides)}")
 
-# === Create a shadow state for jump_num to avoid direct conflict with the widget ===
-if "manual_jump_num" not in st.session_state:
-    st.session_state.manual_jump_num = st.session_state.jump_num
-
+# ===== Thumbnails =====
 with st.expander("Thumbnails"):
     n = min(THUMB_MAX, len(slides))
     cols = st.columns(THUMB_COLS if n >= THUMB_COLS else n)
@@ -90,13 +75,5 @@ with st.expander("Thumbnails"):
         col = cols[i % len(cols)]
         with col:
             if st.button(f"{i+1}", key=f"thumb_{i}", use_container_width=True):
-                st.session_state.slide_idx = i
-                st.session_state.manual_jump_num = i + 1  # Only update this, not the widget directly
-                st.session_state.last_idx_for_jump = i
+                st.session_state.slide_idx = i  # ✅ Update only slide_idx
             col.image(slides[i], width=thumb_width)
-
-# === After rendering widgets, update jump_num safely based on shadow variable ===
-if st.session_state.jump_num != st.session_state.manual_jump_num:
-    st.session_state.jump_num = st.session_state.manual_jump_num
-
-
