@@ -12,7 +12,7 @@ GITHUB_BRANCH = "main"
 FOLDER_PATH   = "pages/lecture/Ch01"
 VALID_EXTS    = (".png", ".jpg", ".jpeg", ".webp")
 DISPLAY_WIDTH_DEFAULT = 900
-THUMB_MAX, THUMB_COLS = 10, 10
+THUMB_MAX, THUMB_COLS = 20, 10
 # ---------------------------------
 
 def natural_key(s: str):
