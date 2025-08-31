@@ -3,7 +3,7 @@ import unicodedata
 import streamlit as st
 
 # ---------------- Page setup ----------------
-st.set_page_config(page_title="Speech Organs Quiz", page_icon="🗣️", layout="wide")
+st.set_page_config(page_title="Basic applications", page_icon="🗣️", layout="wide")
 st.title("🗣️ Speech Organs — Image Quiz")
 
 # ---------------- Config ----------------
@@ -51,7 +51,7 @@ def is_correct(num: int, user_text: str) -> bool:
     return False
 
 # ---------------- Tabs ----------------
-tab1, tab2, tab3 = st.tabs(["Quiz", "Tab 2 (coming soon)", "Tab 3 (coming soon)"])
+tab1, tab2, tab3 = st.tabs(["🌀 Vocal organ practice", "🌀 Tab 2 (coming soon)", "🌀 Tab 3 (coming soon)"])
 
 # =========================================================
 # TAB 1 — Image + 14 text boxes + single "Check answers"
@@ -83,7 +83,7 @@ with tab1:
     st.divider()
 
     # ---- Input form with 14 boxes (two columns), each with question number label ----
-    st.subheader("Type all answers, then **'Check answers'**")
+    st.subheader("📌 Type all answers, then click the button below to check the answers.")
     with st.form("quiz_form"):
         col_left, col_right = st.columns(2)
 
