@@ -72,7 +72,7 @@ with tabs[2]:
     st.caption("Your CSV should have at least the columns `Course` and `Name_ori`.")
 
     default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/F25-roster-total-0831.csv"
-    st.markdown(f"[📎 Sample File: S25DL-roster.csv]({default_url})")
+#    st.markdown(f"[📎 Sample File: S25DL-roster.csv]({default_url})")
 
     uploaded_file = st.file_uploader("Upload your CSV file (optional)", type=["csv"])
 
@@ -91,7 +91,7 @@ with tabs[2]:
         selected_course = st.selectbox("📘 Select Course for Grouping", course_list)
 
         # Step 2: Group size input
-        st.markdown("### 💡 Group Settings")
+        st.markdown("### 💡 Group Settings (Currently 17 students: 3*3G and 4*2G")
         num_group3 = st.number_input("Number of 3-member groups", min_value=0, step=1)
         num_group4 = st.number_input("Number of 4-member groups", min_value=0, step=1)
 
