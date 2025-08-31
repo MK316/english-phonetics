@@ -81,7 +81,7 @@ with tab1:
             st.session_state.quiz_current = 1
             st.session_state.quiz_answers = {}
             st.session_state.quiz_done = False
-            st._rerun()
+            st.rerun()
 
     st.divider()
 
@@ -101,10 +101,10 @@ with tab1:
             st.session_state.quiz_answers[num] = user_input
             if num < TOTAL_ITEMS:
                 st.session_state.quiz_current = num + 1
-                st._rerun()
+                st.rerun()
             else:
                 st.session_state.quiz_done = True
-                st._rerun()
+                st.rerun()
 
     # --------- Results ---------
     else:
