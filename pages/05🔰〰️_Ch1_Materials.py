@@ -5,7 +5,7 @@ st.set_page_config(page_title="Multi-Apps", page_icon="🌀", layout="wide")
 st.markdown("#### 🌀 Multi-Apps for Chapter 1")
 
 # ---------- Tabs ----------
-tab1, tab2, tab3 = st.tabs(["💦 Videos", "💦 Web links", "💦 TBA"])
+tab1, tab2, tab3 = st.tabs(["💦 Videos", "💦 Web links", "💦 Download"])
 
 # =========================================================
 # TAB 1 — Video links
@@ -60,27 +60,14 @@ with tab2:
     #st.markdown("🐾 []()")
 
 # =========================================================
-# TAB 3 — Template (notes + download)
+# TAB 3 — Download files
 # =========================================================
 with tab3:
-    st.subheader("App 3")
-    notes = st.text_area(
-        "Scratchpad / Notes",
-        value="Write anything here...\n",
-        height=220,
-        key="app3_notes"
-    )
-    st.download_button(
-        "Download notes (.txt)",
-        data=notes.encode("utf-8"),
-        file_name="notes.txt",
-        mime="text/plain",
-        use_container_width=True,
-        key="app3_download"
-    )
-
+    st.subheader("File download")
+    st.markdown("+ [IPA chart 2015](https://github.com/MK316/classmaterial/raw/main/Phone/IPA_Kiel_2015.pdf): IPA chart")
+    st.caption("➡️ This IPA chart contains symbols that were agreed upon to represent the sounds of all the world’s languages. It is not a chart made specifically for English.")
     st.divider()
-    st.caption("➡️ Replace this with your real App 3 (e.g., visualizer, quiz, etc.).")
+
 
 # ================== Tips ==================
 # - Each widget uses a unique key (e.g., app1_text) to avoid conflicts across tabs/pages.
