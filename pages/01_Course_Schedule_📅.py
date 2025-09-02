@@ -181,6 +181,6 @@ with tab2:
     )
 
     st.info(
-        "Tip: Keep your own IPA transcription notebook and bring it to every class. "
-        "We’ll do quick in-class checks."
+        "Tip: The course schedule can be subject to change. "
+        "Most updates will be posted here."
     )
