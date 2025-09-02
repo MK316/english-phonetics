@@ -134,6 +134,10 @@ with tab2:
         **formal vs. informal** styles.
         """
     )
+    AUDIO_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/audio/audio-overview.mp3"
+
+    # Click-to-play audio (no autoplay)
+    st.audio(AUDIO_URL, format="audio/mp3", start_time=0)
 
     # --- Textbook & Software ---
     st.markdown("### 📚 Textbook & Software")
