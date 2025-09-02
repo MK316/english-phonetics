@@ -181,6 +181,6 @@ with tab2:
     )
 
     st.info(
-        "Tip: The course schedule can be subject to change. "
+        "Note: The course schedule can be subject to change. "
         "Most updates will be posted here."
     )
