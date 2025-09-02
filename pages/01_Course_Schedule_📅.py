@@ -162,7 +162,7 @@ with tab2:
         ["Quizzes", "30%", "TBA"],
         ["Exam", "40%", "Final exam"],
         ["Assignments", "10%", "Group activities: Exercises (5), Transcription (5)"],
-        ["Summary notes", "10%", "All chapters (checked 3 times)"],
+        ["Summary notes", "10%", "All chapters (will be checked 3 times)"],
     ]
     df = pd.DataFrame(data, columns=["Component", "Percentage", "Notes"])
 
