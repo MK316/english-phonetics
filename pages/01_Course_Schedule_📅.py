@@ -116,12 +116,10 @@ with tab2:
         )
 
     with col2:
-        # Optional QR image (replace with your real URL or remove if not needed)
         QR_URL = "https://github.com/MK316/english-phonetics/raw/main/pages/images/qr_phonetics.png"
         st.markdown("#### Access")
-        st.image(QR_URL, use_container_width=True, width=50)
-
-    st.divider()
+        st.image(QR_URL, caption="Digital classroom QR", width=150)  # set width in pixels
+        st.divider()
 
     # --- Course overview ---
     st.markdown("### 📝 Course overview")
