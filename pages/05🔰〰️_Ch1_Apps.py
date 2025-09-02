@@ -102,7 +102,7 @@ with tab1:
             j = i + 1
             if j <= TOTAL_ITEMS:
                 with col_right:
-                    label_j = f"{j}. Write the name of the speech organ for the number {j}"
+                    label_j = f"{j}. ❄️ Number {j}"
                     st.session_state.answers[j] = st.text_input(
                         label_j,
                         value=st.session_state.answers.get(j, ""),
