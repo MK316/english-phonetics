@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
-st.title("📘 Course Schedule")
+st.title("📘 Course Overview")
 
 tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "TBA"])
 
@@ -117,9 +117,8 @@ with tab2:
 
     with col2:
         QR_URL = "https://github.com/MK316/english-phonetics/raw/main/pages/images/qr_phonetics.png"
-        st.markdown("#### Access")
         st.image(QR_URL, caption="Digital classroom QR", width=150)  # set width in pixels
-        st.divider()
+    st.divider()
 
     # --- Course overview ---
     st.markdown("### 📝 Course overview")
