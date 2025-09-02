@@ -107,7 +107,7 @@ with tab2:
     with col1:
         st.markdown(
             """
-            **• Instructor:** Miran Kim (Associate Professor, Rm# 301-316)  
+            **• Instructor:** Miran Kim (Professor, Rm# 301-316)  
             **• Meeting Schedule:** Tuesdays (1–1:50 pm) & Thursdays (2–2:50 pm)  
             **• Digital classroom:** [MK316.github.io](https://MK316.github.io)  — course apps & resources  
             **• LMS:** rec.ac.kr/gnu  
