@@ -20,8 +20,8 @@ with tab1:
     
     # ✅ STEP 1: Fill only the weeks you want — here, Week 3 has data (Sept. 16 & 18)
     schedule_content = {
-        "2025-09-02": ["Ch. 1", "Syllabus, Course overview", "Grouping", ""],
-        "2025-09-04": ["Ch. 1", "", "",""],
+        "2025-09-02": ["Ch. 1", "Syllabus, Course overview", "Grouping", "Reading pp. 2~5"],
+        "2025-09-04": ["Ch. 1", "Vocal anatomy", "",""],
         "2025-09-09": ["", "", "", ""],
         "2025-09-11": ["", "", "", ""],
         "2025-09-16": ["", "", "", ""],
