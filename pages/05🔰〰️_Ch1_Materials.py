@@ -177,8 +177,8 @@ with tab3:
 
     # --- List your WAV files here (Title, GitHub URL) ---
     wav_files = [
-        ("Dolphin speech (WAV)", "https://github.com/MK316/english-phonetics/blob/main/pages/audio/dolphin.wav"),
-        ("Human speech (WAV)", "https://github.com/MK316/english-phonetics/blob/main/pages/audio/human.wav"),
+        ("🐬 Dolphin speech (WAV)", "https://github.com/MK316/english-phonetics/blob/main/pages/audio/dolphin.wav"),
+        ("⛄ Human speech (WAV)", "https://github.com/MK316/english-phonetics/blob/main/pages/audio/human.wav"),
         # Add more...
     ]
 
