@@ -109,9 +109,6 @@ if "vh_percent" not in st.session_state:
     st.session_state.vh_percent = 88
 if "display_width_px" not in st.session_state:
     st.session_state.display_width_px = 1000
-# NEW: persistent jump control state
-if "jump_to" not in st.session_state:
-    st.session_state.jump_to = st.session_state.slide_idx + 1  # 1-based
 
 def clamp_index(i: int, n: int) -> int:
     """Clamp index i into [0, n-1]."""
@@ -119,39 +116,32 @@ def clamp_index(i: int, n: int) -> int:
         return 0
     return max(0, min(n - 1, i))
 
-# One-click callback for jump control
-def on_jump_change():
-    st.session_state.slide_idx = clamp_index(st.session_state.jump_to - 1, len(slides))
-    # Optional: immediate refresh is typically not necessary, but safe:
-    # if hasattr(st, "rerun"): st.rerun()
+# --- Navigation callbacks (one click, wrap-around) ---
+def go_prev():
+    st.session_state.slide_idx = (st.session_state.slide_idx - 1) % len(slides)
+
+def go_next():
+    st.session_state.slide_idx = (st.session_state.slide_idx + 1) % len(slides)
 
 # ===== Sidebar controls =====
 with st.sidebar:
     st.subheader("Controls")
 
-    # --- One-click Jump to slide (choose ONE: slider or number input) ---
-    use_slider = True   # set False to use number_input instead
-
-    if use_slider:
-        st.slider(
-            "Jump to slide",
-            min_value=1,
-            max_value=len(slides),
-            step=1,
-            key="jump_to",
-            on_change=on_jump_change
-        )
-    else:
-        st.number_input(
-            "Jump to slide",
-            min_value=1,
-            max_value=len(slides),
-            step=1,
-            key="jump_to",
-            on_change=on_jump_change
+    # Simple NEXT / PREV buttons (place BEFORE reading idx)
+    nav = st.columns([1, 1, 2])
+    with nav[0]:
+        st.button("◀️ Prev", key="btn_prev", use_container_width=True, on_click=go_prev)
+    with nav[1]:
+        st.button("Next ▶️", key="btn_next", use_container_width=True, on_click=go_next)
+    with nav[2]:
+        # live display of current position
+        st.markdown(
+            f"<div style='text-align:right; font-weight:600;'>"
+            f"{st.session_state.slide_idx + 1} / {len(slides)}</div>",
+            unsafe_allow_html=True
         )
 
-    # View options (state-backed widgets; no dynamic 'value' argument)
+    # View options (state-backed widgets)
     st.toggle("Fit main slide to screen height", key="fit_to_height")
     if st.session_state.fit_to_height:
         st.slider("Height % of screen", 60, 95, key="vh_percent")
@@ -222,7 +212,6 @@ with st.expander("Thumbnails"):
             if st.button(f"{global_idx + 1}", key=f"thumb_btn_{global_idx}", use_container_width=True):
                 st.session_state.slide_idx = global_idx
             st.image(thumb_bytes, width=150)
-
 
 
 # import re
