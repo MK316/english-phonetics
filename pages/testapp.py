@@ -15,22 +15,18 @@ import streamlit.components.v1 as components
 
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Transcription Practice (GitHub CSV) + IPA keyboard", layout="wide")
-st.title("🎧 Transcription Practice (GitHub CSV)")
+st.markdown("### 🎧 Transcription Practice")
 
-st.caption(
-    "Paste a GitHub **RAW** CSV URL with columns: "
-    "**Word**, **Phonemic Transcription**, **Phonetic Transcription**, **Feedback**.\n\n"
-    "Use the embedded IPA keyboard to type symbols. "
-    "Pick **Phonemic** (//) or **Phonetic** ([]) mode for practice."
-)
+# st.caption(
+#     "Paste a GitHub **RAW** CSV URL with columns: "
+#     "**Word**, **Phonemic Transcription**, **Phonetic Transcription**, **Feedback**.\n\n"
+#     "Use the embedded IPA keyboard to type symbols. "
+#     "Pick **Phonemic** (//) or **Phonetic** ([]) mode for practice."
+# )
 
 # ---------------- RAW URL (edit default for your repo) ----------------
-DEFAULT_RAW_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata1.csv"  # e.g., "https://raw.githubusercontent.com/MK316/classmaterial/refs/heads/main/Phonetics/transcription_items.csv"
-raw_url = st.text_input(
-    "GitHub RAW CSV URL",
-    value=DEFAULT_RAW_URL,
-    placeholder="https://raw.githubusercontent.com/USER/REPO/BRANCH/path/to/file.csv",
-)
+# DEFAULT_RAW_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata1.csv"  # e.g., "https://raw.githubusercontent.com/MK316/classmaterial/refs/heads/main/Phonetics/transcription_items.csv"
+raw_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata1.csv"
 
 # ---------------- Mode switch (Phonemic // vs Phonetic []) ----------------
 st.markdown("#### Transcription Mode")
