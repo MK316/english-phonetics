@@ -26,7 +26,7 @@ st.markdown("### 🎧 Transcription Practice")
 
 # ---------------- RAW URL (edit default for your repo) ----------------
 # DEFAULT_RAW_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata2.csv"  # e.g., "https://raw.githubusercontent.com/MK316/classmaterial/refs/heads/main/Phonetics/transcription_items.csv"
-raw_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata2.csv"
+raw_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata3.csv"
 
 # ---------------- Mode switch (Phonemic // vs Phonetic []) ----------------
 st.markdown("### 📕 1. Transcription Mode")
