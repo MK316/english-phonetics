@@ -31,7 +31,7 @@ raw_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/
 # ---------------- Mode switch (Phonemic // vs Phonetic []) ----------------
 st.markdown("#### Transcription Mode")
 mode = st.radio(
-    "Choose which transcription to practice:",
+    "📕 1. Choose which transcription to practice:",
     options=["Phonemic //", "Phonetic []"],
     horizontal=True,
     key="mode",
@@ -242,7 +242,7 @@ tab1, tab2 = st.tabs(["🌵 Tab 1 — transcription reading", "🌵 Tab 2 — Tr
 
 # ===== TAB 1 =====
 with tab1:
-    st.markdown(f"### 📕 TASK: Read the {MODE_LABEL} transcription while listening")
+    st.markdown(f"### 📕 2. TASK: Read the **{MODE_LABEL}** transcription while listening")
 
     item = DATASET[st.session_state.idx_tab1]
     fmt, audio_bytes = audio_for_word(item["word"])
