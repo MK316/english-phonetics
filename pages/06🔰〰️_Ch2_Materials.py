@@ -37,7 +37,7 @@ with tab1:
 
     # Foldable line 1 — text + audio
     with st.expander("Slide #6", expanded=False):
-        st.markdown("Minimal pairs practice — focus on initial consonants.")
+        st.markdown("Words you've heard all include the same sound?")
         st.audio(to_raw(AUDIO_URL), format="audio/mp3")
 
     # Foldable line 2 — video
