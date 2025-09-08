@@ -134,7 +134,7 @@ def render_step(feature_name: str):
             )
         # go to next stage
         st.session_state.step += 1
-        st.experimental_rerun()
+        st.rerun()
 
 # ===== Helper: build user DataFrame from selections =====
 def selections_to_df():
