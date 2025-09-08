@@ -136,6 +136,8 @@ with tab2:
     for i, row in st.session_state.text_items.iterrows():
         st.markdown(f"**{i+1}. {row['Description']}**")
         # st.write("Fill in: " + "____ " * row["Word count"])
+        st.write(f"Type your answer: ({row['Word count']} word{'s' if row['Word count'] > 1 else ''})")
+
         st.session_state.text_answers[i] = st.text_input(f"Your answer {i+1}", key=f"text_answer_{i}")
 
     if st.button("✅ Check Answers (Text)", key="check_text"):
@@ -177,7 +179,9 @@ with tab3:
         st.markdown(f"**{i+1}. Listen and Type the Term**")
         audio = speak(row["Term"])
         audio_player(audio)
-        st.write("Fill in: " + "____ " * row["Word count"])
+        # st.write("Fill in: " + "____ " * row["Word count"])
+        st.write(f"Type your answer: ({row['Word count']} word{'s' if row['Word count'] > 1 else ''})")
+
         st.session_state.audio_answers[i] = st.text_input(f"Your answer {i+1} (audio)", key=f"audio_answer_{i}")
 
     if st.button("✅ Check Answers (Audio)", key="check_audio"):
