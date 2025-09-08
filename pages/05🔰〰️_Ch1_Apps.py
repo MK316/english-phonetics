@@ -182,7 +182,7 @@ with tab3:
         # st.write("Fill in: " + "____ " * row["Word count"])
         st.write(f"Type your answer: ({row['Word count']} word{'s' if row['Word count'] > 1 else ''})")
 
-        st.session_state.audio_answers[i] = st.text_input(f"Your answer {i+1} (audio)", key=f"audio_answer_{i}")
+        st.session_state.audio_answers[i] = st.text_input(f"Your answer {i+1}", key=f"audio_answer_{i}")
 
     if st.button("✅ Check Answers (Audio)", key="check_audio"):
         score = 0
