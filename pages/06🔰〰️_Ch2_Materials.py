@@ -50,8 +50,13 @@ with tab1:
         st.audio(to_raw(AUDIO_URL2), format="audio/mp3")
         st.audio(to_raw(AUDIO_URL3), format="audio/mp3")
 
-    with st.expander("Slide #14 - writer vs. rider", expanded=False):
+    with st.expander("Slide #14 - writer[ʌɪ] vs. rider[aɪ]", expanded=False):
         st.markdown("Listen to the vowels to hear the variation between 'writer' and 'rider'.")
+        st.markdown("""
+        1. He is a novel writer and she is a horse rider.
+        2. He said pipe—not vibe.
+        3. Please read pipe first, then vibe.
+        """)
         st.audio(to_raw(AUDIO_URL4), format="audio/mp3")
     
     
