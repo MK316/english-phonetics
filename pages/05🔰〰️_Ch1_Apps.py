@@ -177,7 +177,7 @@ with tab3:
 
     for i, row in st.session_state.audio_items.iterrows():
         st.markdown(f"**{i+1}. Listen and Type the Term**")
-        audio = speak(row["Term"])
+        audio = speak(row["Description"])
         audio_player(audio)
         # st.write("Fill in: " + "____ " * row["Word count"])
         st.write(f"Type your answer: ({row['Word count']} word{'s' if row['Word count'] > 1 else ''})")
