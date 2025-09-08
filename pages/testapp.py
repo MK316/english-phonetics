@@ -48,7 +48,7 @@ else:
 
 # ---------------- IPA typing page (embedded, above tabs) ----------------
 st.markdown("### 🍊 [fənɛɾɪks]: IPA TypeIt Tool (Embedded)")
-st.markdown("You can use the full IPA keyboard below to input transcriptions.")
+# st.markdown("You can use the full IPA keyboard below to input transcriptions.")
 st.markdown("Weblink – https://ipa.typeit.org/")
 components.iframe("https://ipa.typeit.org/", height=400, scrolling=True)
 
