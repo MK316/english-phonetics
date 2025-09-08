@@ -242,7 +242,7 @@ tab1, tab2 = st.tabs(["🌵 Tab 1 — transcription reading", "🌵 Tab 2 — Tr
 
 # ===== TAB 1 =====
 with tab1:
-    st.subheader(f"Read the {MODE_LABEL} transcription while listening")
+    st.markdown(f"### 📕 TASK: Read the {MODE_LABEL} transcription while listening")
 
     item = DATASET[st.session_state.idx_tab1]
     fmt, audio_bytes = audio_for_word(item["word"])
