@@ -11,55 +11,38 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import streamlit as st
 
-# =========================
-# Page setup
-# =========================
+# ---------------- Page setup ----------------
 st.set_page_config(page_title="Transcription Practice", layout="centered")
 st.title("🎧 Transcription Practice")
 
 st.caption(
-    "Tab 1: Read the phonemic transcription while listening.\n\n"
-    "Tab 2: Listen, then type the **phonemic** transcription (no long-vowel colon)."
+    "Tab 1: Read the **phonemic** transcription while listening, then type the word you hear.\n\n"
+    "Tab 2: Listen first, then type the **phonemic** transcription (no long-vowel colon)."
 )
 
-# =========================
-# Sample dataset (replace later)
+# ---------------- Sample dataset (replace later) ----------------
 # Fields per item:
 #   word: orthographic form
 #   ipa: phonemic transcription (no length colon)
-#   feedback: guidance shown to learners
-# =========================
+#   feedback: short hint
 DATASET: List[Dict[str, str]] = [
-    {
-        "word": "language",
-        "ipa": "ˈlæŋɡwɪdʒ",   # no ː
-        "feedback": "Note the cluster /ŋɡ/ and the affricate /dʒ/ at the end.",
-    },
-    {
-        "word": "linguistics",
-        "ipa": "lɪŋˈɡwɪstɪks",  # no ː
-        "feedback": "Pay attention to /ŋɡw/ cluster; no long-vowel marks are used.",
-    },
+    {"word": "language",    "ipa": "ˈlæŋɡwɪdʒ",   "feedback": "Note /ŋɡ/ and final /dʒ/; no length marks."},
+    {"word": "linguistics", "ipa": "lɪŋˈɡwɪstɪks", "feedback": "Mind the /ŋɡw/ cluster and secondary syllables."},
 ]
 
-# =========================
-# Helpers
-# =========================
+# ---------------- Helpers: state & utilities ----------------
 def ensure_state():
-    # Per-tab indices
-    if "idx_tab1" not in st.session_state:
-        st.session_state.idx_tab1 = random.randrange(len(DATASET))
-    if "idx_tab2" not in st.session_state:
-        st.session_state.idx_tab2 = random.randrange(len(DATASET))
+    st.session_state.setdefault("idx_tab1", random.randrange(len(DATASET)))
+    st.session_state.setdefault("idx_tab2", random.randrange(len(DATASET)))
 
-    if "typed_answer" not in st.session_state:
-        st.session_state.typed_answer = ""
+    # Tab 1 (word typing)
+    st.session_state.setdefault("t1_typed_word", "")
+    st.session_state.setdefault("t1_word_result", None)  # ("correct"/"wrong", message)
+    st.session_state.setdefault("t1_show_feedback", False)
 
-    if "show_feedback_tab1" not in st.session_state:
-        st.session_state.show_feedback_tab1 = False
-
-    if "result_tab2" not in st.session_state:
-        st.session_state.result_tab2 = None  # ("correct"/"wrong", message)
+    # Tab 2 (IPA typing)
+    st.session_state.setdefault("typed_answer", "")
+    st.session_state.setdefault("result_tab2", None)     # ("correct"/"wrong", message)
 
 ensure_state()
 
@@ -98,25 +81,23 @@ def gtts_bytes(text: str, lang: str = "en") -> bytes:
 
 
 def audio_for_word(word: str) -> Tuple[str, bytes]:
-    """
-    Return ("mp3", bytes) if gTTS succeeds, else ("wav", beep_bytes).
-    """
+    """Return ('mp3', bytes) if gTTS succeeds, else ('wav', beep_bytes)."""
     try:
         mp3 = gtts_bytes(word, lang="en")
         return "mp3", mp3
     except Exception:
-        # Fallback: simple beep
         return "wav", sine_beep_wav_bytes()
 
 
+# ---------------- Normalization & checking ----------------
 def normalize_phonemic(s: str) -> str:
     """
-    Normalize student's typed phonemic transcription:
-    - NFKC normalization
-    - remove slashes/brackets, whitespace
-    - remove stress marks (ˈ, ˌ) and length (ː, :)
-    - map ASCII 'g' → IPA 'ɡ'
-    - unify common affricate variants
+    Normalize user IPA:
+    - NFKC
+    - remove slashes/brackets/whitespace
+    - remove stress (ˈ, ˌ) & length (ː, :)
+    - unify affricates: ʤ->dʒ, t͡ʃ->tʃ
+    - ASCII g -> IPA ɡ
     """
     if not s:
         return ""
@@ -124,48 +105,82 @@ def normalize_phonemic(s: str) -> str:
 
     for ch in "/[](){} \t\n\r":
         s = s.replace(ch, "")
-
     for ch in ["ˈ", "ˌ", "ː", ":"]:
         s = s.replace(ch, "")
 
-    # Common equivalences
-    s = s.replace("ʤ", "dʒ")   # alt affricate
-    s = s.replace("t͡ʃ", "tʃ")  # tie-bar variant
-
-    # ASCII 'g' to IPA 'ɡ'
+    s = s.replace("ʤ", "dʒ")
+    s = s.replace("t͡ʃ", "tʃ")
     s = s.replace("g", "ɡ")
     return s
 
 
-def canonical_target(item: Dict[str, str]) -> str:
-    """Canonical normalized target to compare against."""
+def canonical_target_ipa(item: Dict[str, str]) -> str:
     return normalize_phonemic(item["ipa"])
 
 
 def compare_transcription(user_input: str, item: Dict[str, str]) -> Tuple[bool, str]:
-    """
-    Return (is_correct, message).
-    """
     user_norm = normalize_phonemic(user_input)
-    target_norm = canonical_target(item)
-
+    target_norm = canonical_target_ipa(item)
     if user_norm == target_norm:
         return True, "✅ Correct!"
-    else:
-        msg = (
-            "❌ Not quite.\n\n"
-            f"**Your input (normalized):** `{user_norm}`\n\n"
-            f"**Target:** `{target_norm}`"
-        )
-        return False, msg
+    return False, f"❌ Not quite.\n\n**Your input (normalized):** `{user_norm}`\n\n**Target:** `{target_norm}`"
 
 
-# =========================
-# TABS
-# =========================
+def normalize_word(s: str) -> str:
+    """Lowercase, strip spaces/punctuation (simple) for word-typing check."""
+    if not s:
+        return ""
+    s = s.strip().lower()
+    # Remove trivial spaces/dashes/quotes
+    for ch in " -_'’":
+        s = s.replace(ch, "")
+    return s
+
+
+def compare_word(user_word: str, item: Dict[str, str]) -> Tuple[bool, str]:
+    if normalize_word(user_word) == normalize_word(item["word"]):
+        return True, "✅ Correct!"
+    return False, f"❌ Not quite. Target word: **{item['word']}**"
+
+
+# ---------------- Button callbacks (one-click) ----------------
+def t1_new_item():
+    st.session_state.idx_tab1 = pick_new_random(st.session_state.idx_tab1, len(DATASET))
+    st.session_state.t1_typed_word = ""
+    st.session_state.t1_word_result = None
+    st.session_state.t1_show_feedback = False
+
+def t1_check_word():
+    item = DATASET[st.session_state.idx_tab1]
+    ok, msg = compare_word(st.session_state.t1_typed_word, item)
+    st.session_state.t1_word_result = ("correct" if ok else "wrong", msg)
+
+def t1_clear():
+    st.session_state.t1_typed_word = ""
+    st.session_state.t1_word_result = None
+
+def t1_show_fb():
+    st.session_state.t1_show_feedback = True
+
+def t2_check():
+    item = DATASET[st.session_state.idx_tab2]
+    ok, msg = compare_transcription(st.session_state.typed_answer, item)
+    st.session_state.result_tab2 = ("correct" if ok else "wrong", msg)
+
+def t2_clear():
+    st.session_state.typed_answer = ""
+    st.session_state.result_tab2 = None
+
+def t2_new_item():
+    st.session_state.idx_tab2 = pick_new_random(st.session_state.idx_tab2, len(DATASET))
+    st.session_state.typed_answer = ""
+    st.session_state.result_tab2 = None
+
+
+# ---------------- Tabs ----------------
 tab1, tab2 = st.tabs(["Tab 1 — Read the transcription", "Tab 2 — Type after listening"])
 
-# ---------- TAB 1 ----------
+# ===== TAB 1 =====
 with tab1:
     st.subheader("Read the transcription while listening")
 
@@ -175,25 +190,35 @@ with tab1:
     st.write(f"**Word:** {item['word']}")
     st.write(f"**Phonemic transcription:** /{item['ipa']}/  *(No long-vowel colon)*")
 
-    if fmt == "mp3":
-        st.audio(audio_bytes, format="audio/mp3")
-    else:
-        st.audio(audio_bytes, format="audio/wav")
+    st.audio(audio_bytes, format=f"audio/{fmt}")
 
-    c1, c2 = st.columns(2)
+    # Type the word you hear/see
+    st.text_input(
+        "Type the word (orthographic):",
+        key="t1_typed_word",
+        placeholder="e.g., language",
+    )
+
+    c1, c2, c3 = st.columns(3)
     with c1:
-        if st.button("🔁 New item", key="t1_new"):
-            st.session_state.idx_tab1 = pick_new_random(st.session_state.idx_tab1, len(DATASET))
-            st.session_state.show_feedback_tab1 = False
-            st.rerun()  # one click, immediate refresh
+        st.button("✅ Check word", key="t1_check", on_click=t1_check_word)
     with c2:
-        if st.button("💡 Show feedback", key="t1_fb"):
-            st.session_state.show_feedback_tab1 = True
+        st.button("🧹 Clear", key="t1_clear", on_click=t1_clear)
+    with c3:
+        st.button("🔁 New item", key="t1_new", on_click=t1_new_item)
 
-    if st.session_state.show_feedback_tab1:
+    # Feedback controls
+    st.button("💡 Show feedback", key="t1_fb", on_click=t1_show_fb)
+
+    # Results
+    if st.session_state.t1_word_result:
+        status, msg = st.session_state.t1_word_result
+        (st.success if status == "correct" else st.error)(msg)
+
+    if st.session_state.t1_show_feedback:
         st.info(item["feedback"])
 
-# ---------- TAB 2 ----------
+# ===== TAB 2 =====
 with tab2:
     st.subheader("Type the transcription after listening")
 
@@ -202,11 +227,7 @@ with tab2:
 
     # Optionally hide the word by commenting the next line
     st.write(f"**Word:** {item2['word']}")
-
-    if fmt2 == "mp3":
-        st.audio(audio_bytes2, format="audio/mp3")
-    else:
-        st.audio(audio_bytes2, format="audio/wav")
+    st.audio(audio_bytes2, format=f"audio/{fmt2}")
 
     st.text_input(
         "Type the phonemic transcription (no long-vowel colon):",
@@ -214,36 +235,22 @@ with tab2:
         placeholder="e.g., /lɪŋˈɡwɪstɪks/",
     )
 
-    colA, colB, colC = st.columns([1, 1, 1])
+    colA, colB, colC = st.columns(3)
     with colA:
-        if st.button("✅ Check", key="t2_check"):
-            ok, msg = compare_transcription(st.session_state.typed_answer, item2)
-            st.session_state.result_tab2 = ("correct" if ok else "wrong", msg)
+        st.button("✅ Check", key="t2_check_btn", on_click=t2_check)
     with colB:
-        if st.button("🧹 Clear", key="t2_clear"):
-            st.session_state.typed_answer = ""
-            st.session_state.result_tab2 = None
-            st.rerun()
+        st.button("🧹 Clear", key="t2_clear_btn", on_click=t2_clear)
     with colC:
-        if st.button("🔁 New item", key="t2_new"):
-            st.session_state.idx_tab2 = pick_new_random(st.session_state.idx_tab2, len(DATASET))
-            st.session_state.typed_answer = ""
-            st.session_state.result_tab2 = None
-            st.rerun()
+        st.button("🔁 New item", key="t2_new_btn", on_click=t2_new_item)
 
     if st.session_state.result_tab2:
         status, msg = st.session_state.result_tab2
-        if status == "correct":
-            st.success(msg)
-        else:
-            st.error(msg)
+        (st.success if status == "correct" else st.error)(msg)
 
-# =========================
-# Notes for replacing dataset
-# =========================
-with st.expander("ℹ️ How to replace the sample dataset"):
+# ---------------- Notes ----------------
+with st.expander("ℹ️ Replace the dataset"):
     st.markdown(
         "- Edit the `DATASET` list near the top of this file.\n"
-        "- Use **phonemic** transcription without long-vowel colons (e.g., `ˈlæŋɡwɪdʒ`).\n"
-        "- The app generates audio with **gTTS** for the word string.\n"
+        "- Use **phonemic** transcription without length colons (e.g., `ˈlæŋɡwɪdʒ`).\n"
+        "- Audio is generated with **gTTS** for the *word string*.\n"
     )
