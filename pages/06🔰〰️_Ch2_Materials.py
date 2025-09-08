@@ -43,7 +43,7 @@ with tab1:
         st.audio(to_raw(AUDIO_URL1), format="audio/mp3")
 
     # Foldable line 1 — text + audio
-    with st.expander("Slide #6 - 'Mary-merry-marry", expanded=False):
+    with st.expander("Slide #11 - 'Mary-merry-marry", expanded=False):
         st.markdown("Neutralization: 'Mary-merry-marry")
         st.audio(to_raw(AUDIO_URL2), format="audio/mp3")
         st.audio(to_raw(AUDIO_URL3), format="audio/mp3")
