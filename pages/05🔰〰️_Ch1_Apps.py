@@ -123,7 +123,52 @@ with tab1:
             st.session_state.results = {}
             st.rerun()
 
-# ---------------- Tab 3 — Audio Practice (Description -> Term) ----------------
+
+# ---------------- Tab 2 — Text Practice ----------------
+with tab2:
+    st.subheader("✍️ Practice Terms with Text Descriptions")
+    num_items = st.number_input(
+        "How many terms would you like to practice?",
+        min_value=1,
+        max_value=len(df),
+        value=3,
+        key="text_input"
+    )
+
+    # initialize or reset when button clicked
+    if "text_items" not in st.session_state or st.button("🔄 New Practice (Text)", key="new_text"):
+        st.session_state.text_items = df.sample(num_items).reset_index(drop=True)
+        st.session_state.text_answers = [""] * num_items
+        st.session_state.text_score = None
+
+    # show each description and answer box
+    for i, row in st.session_state.text_items.iterrows():
+        st.markdown(f"**{i+1}. {row['Description']}**")
+        wc = len(str(row["Term"]).split())  # recompute from the Term
+        st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
+        st.session_state.text_answers[i] = st.text_input(
+            f"Your answer {i+1}", 
+            value=st.session_state.text_answers[i],
+            key=f"text_answer_{i}"
+        )
+
+    # check answers button
+    if st.button("✅ Check Answers (Text)", key="check_text"):
+        score = 0
+        for i, row in st.session_state.text_items.iterrows():
+            # normalize both sides (lowercase + collapse spaces)
+            gold = " ".join(str(row["Term"]).strip().lower().split())
+            guess = " ".join(str(st.session_state.text_answers[i]).strip().lower().split())
+            if guess == gold:
+                score += 1
+                st.success(f"{i+1}. Correct!")
+            else:
+                st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
+
+        st.success(f"Your score: {score} / {num_items}")
+        if score == num_items:
+            st.balloons()
+
 # ---------------- Tab 3 — Audio Practice (Description -> Term) ----------------
 with tab3:
     st.subheader("🔊 Practice Terms with Audio (Hear the definition, type the term)")
@@ -188,14 +233,15 @@ with tab3:
             score = 0
             for i, idx in enumerate(st.session_state.audio_idx):
                 row = df.loc[idx]
-                gold = str(row["Term"]).strip().lower()
-                guess = str(st.session_state.audio_answers[i]).strip().lower()
+                gold = " ".join(str(row["Term"]).strip().lower().split())
+                guess = " ".join(str(st.session_state.audio_answers[i]).strip().lower().split())
                 if guess == gold:
                     score += 1
                     st.success(f"{i+1}. Correct!")
                 else:
                     st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
-
+        
             st.success(f"Your score: {score} / {len(st.session_state.audio_idx)}")
             if score == len(st.session_state.audio_idx):
                 st.balloons()
+
