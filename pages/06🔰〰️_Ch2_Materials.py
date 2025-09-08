@@ -34,7 +34,7 @@ with tab1:
     AUDIO_URL1 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide6.mp3"
     AUDIO_URL2 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide11a.mp3"
     AUDIO_URL3 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide11b.mp3"
-    AUDIO_URL4 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide14.mp3"
+    AUDIO_URL4 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide12.mp3"
     
     # Use an MP4 / WebM file or a YouTube link for video:
     VIDEO_URL = "https://youtu.be/dQw4w9WgXcQ"  # <-- replace with your real link (or raw GitHub MP4)
