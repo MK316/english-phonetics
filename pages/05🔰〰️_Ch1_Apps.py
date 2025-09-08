@@ -135,7 +135,7 @@ with tab2:
 
     for i, row in st.session_state.text_items.iterrows():
         st.markdown(f"**{i+1}. {row['Description']}**")
-        st.write("Fill in: " + "____ " * row["Word count"])
+        # st.write("Fill in: " + "____ " * row["Word count"])
         st.session_state.text_answers[i] = st.text_input(f"Your answer {i+1}", key=f"text_answer_{i}")
 
     if st.button("✅ Check Answers (Text)", key="check_text"):
