@@ -31,15 +31,24 @@ with tab1:
         return url.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
 
     # Your media
-    AUDIO_URL = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide6.mp3"
+    AUDIO_URL1 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide6.mp3"
+    AUDIO_URL2 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide11a.mp3"
+    AUDIO_URL3 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide11a.mp3"
     # Use an MP4 / WebM file or a YouTube link for video:
     VIDEO_URL = "https://youtu.be/dQw4w9WgXcQ"  # <-- replace with your real link (or raw GitHub MP4)
 
     # Foldable line 1 — text + audio
-    with st.expander("Slide #6", expanded=False):
+    with st.expander("Slide #6 - Same sound?", expanded=False):
         st.markdown("Words you've heard all include the same sound?")
-        st.audio(to_raw(AUDIO_URL), format="audio/mp3")
+        st.audio(to_raw(AUDIO_URL1), format="audio/mp3")
 
+    # Foldable line 1 — text + audio
+    with st.expander("Slide #6 - 'Mary-merry-marry", expanded=False):
+        st.markdown("Words you've heard all include the same sound?")
+        st.audio(to_raw(AUDIO_URL2), format="audio/mp3")
+        st.audio(to_raw(AUDIO_URL3), format="audio/mp3")
+    
+    
     # Foldable line 2 — video
     with st.expander("Slide #8", expanded=False):
         st.markdown("Demonstration clip (articulation walkthrough).")
