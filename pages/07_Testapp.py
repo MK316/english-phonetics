@@ -15,7 +15,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 # ===== App setup =====
 st.set_page_config(page_title="IPA Practice — Step-by-Step", layout="centered")
-st.title("IPA Practice — Step-by-Step Feature Classification")
+st.markdown("#### 🐾 IPA Practice — Describing 24 English consonants")
 
 st.caption(
     "Work through the five steps. Each step shows one feature for all symbols. "
@@ -224,7 +224,7 @@ def build_pdf(df_user: pd.DataFrame, wrong_mask: pd.DataFrame, feedback_lines, g
     fb_style = ParagraphStyle("FB", parent=styles["Normal"], fontName=base_font, fontSize=9, leading=11)
 
     elements = []
-    elements.append(Paragraph("IPA Practice — Feature Classification", title_style))
+    elements.append(Paragraph("🐳 IPA Practice — 24 English consonants", title_style))
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
     elements.append(Paragraph(
         f"Group: {group_name or ''} &nbsp;&nbsp; Name: {student_name or ''} &nbsp;&nbsp; Exported: {ts}",
@@ -273,7 +273,7 @@ def build_pdf(df_user: pd.DataFrame, wrong_mask: pd.DataFrame, feedback_lines, g
 
     # Feedback section in PDF
     elements.append(Spacer(1, 10))
-    elements.append(Paragraph("Feedback", feedback_title_style))
+    elements.append(Paragraph("🐾 Feedback", feedback_title_style))
     if feedback_lines:
         for line in feedback_lines:
             elements.append(Paragraph(line, fb_style))
