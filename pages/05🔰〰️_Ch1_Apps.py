@@ -124,6 +124,7 @@ with tab1:
             st.rerun()
 
 # ---------------- Tab 3 — Audio Practice (Description -> Term) ----------------
+# ---------------- Tab 3 — Audio Practice (Description -> Term) ----------------
 with tab3:
     st.subheader("🔊 Practice Terms with Audio (Hear the definition, type the term)")
 
@@ -132,82 +133,69 @@ with tab3:
         min_value=1,
         max_value=len(df),
         value=3,
-        key="audio_input",
+        key="audio_num",
+        help="Choose a number, then click New Practice to lock your questions."
     )
 
     # ---------- helpers ----------
     def speak(text: str) -> BytesIO:
+        from gtts import gTTS
+        from io import BytesIO
         tts = gTTS(text)
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         return fp
 
-    def audio_player(audio_bytes: BytesIO):
-        audio_data = audio_bytes.read()
-        b64 = base64.b64encode(audio_data).decode()
-        st.markdown(
-            f"""
-            <audio controls>
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-            """,
-            unsafe_allow_html=True,
-        )
+    # Create state containers once
+    if "audio_idx" not in st.session_state:
+        st.session_state.audio_idx = []          # list of df index ints
+    if "audio_answers" not in st.session_state:
+        st.session_state.audio_answers = []      # parallel answers list
 
-    # ---------- build a frozen sample ----------
-    def _new_audio_sample(n: int):
-        sample = df.sample(n, random_state=None).reset_index(drop=True)
-        # Freeze to plain Python objects; recompute word count from the Term to avoid CSV mismatch
-        qs = []
-        for _, r in sample.iterrows():
-            term = str(r["Term"]).strip()
-            desc = str(r["Description"]).strip()
-            wc = len(term.split())  # <- trust the term itself
-            qs.append({
-                "term": term,
-                "desc": desc,
-                "wc": wc,
-                # stable key per question (prevents Streamlit widget-value mixing)
-                "key": f"{term.lower().replace(' ', '_')}_{wc}"
-            })
-        st.session_state.audio_qs = qs
-        st.session_state.audio_answers = [""] * len(qs)
-
-    # initialize once OR when user changes count
-    if "audio_qs" not in st.session_state or len(st.session_state.audio_qs) != int(num_items_audio):
-        _new_audio_sample(int(num_items_audio))
-
-    # explicit new practice only when user clicks
+    # Explicit (re)sample: only when button is clicked
     if st.button("🔄 New Practice (Audio)", key="new_audio"):
-        _new_audio_sample(int(num_items_audio))
+        sample = df.sample(int(num_items_audio), random_state=None)
+        st.session_state.audio_idx = sample.index.tolist()
+        st.session_state.audio_answers = [""] * len(st.session_state.audio_idx)
         st.rerun()
 
-    # ---------- render questions (frozen) ----------
-    for i, q in enumerate(st.session_state.audio_qs):
-        st.markdown(f"**{i+1}. Listen to the definition and type the correct term**")
-        audio = speak(q["desc"])
-        audio_player(audio)
-        wc = q["wc"]
-        st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
-        st.session_state.audio_answers[i] = st.text_input(
-            f"Your answer {i+1}",
-            value=st.session_state.audio_answers[i],
-            key=f"audio_answer_{q['key']}",
-        )
+    # If nothing sampled yet, prompt to start
+    if not st.session_state.audio_idx:
+        st.info("Set the number above and click **New Practice (Audio)** to start.")
+    else:
+        # ---------- render frozen questions ----------
+        for i, idx in enumerate(st.session_state.audio_idx):
+            row = df.loc[idx]  # same row for audio and grading
+            term = str(row["Term"]).strip()
+            desc = str(row["Description"]).strip()
+            wc = len(term.split())  # trust the term itself for word count
 
-    # ---------- check answers ----------
-    if st.button("✅ Check Answers (Audio)", key="check_audio"):
-        score = 0
-        for i, q in enumerate(st.session_state.audio_qs):
-            gold = q["term"].lower()
-            guess = str(st.session_state.audio_answers[i]).strip().lower()
-            if guess == gold:
-                score += 1
-                st.success(f"{i+1}. Correct!")
-            else:
-                st.error(f"{i+1}. Incorrect. ✅ Correct: **{q['term']}**")
+            st.markdown(f"**{i+1}. Listen to the definition and type the correct term**")
+            audio_bytes = speak(desc)
+            # Use Streamlit's audio widget (less caching weirdness)
+            st.audio(audio_bytes, format="audio/mp3")
 
-        st.success(f"Your score: {score} / {len(st.session_state.audio_qs)}")
-        if score == len(st.session_state.audio_qs):
-            st.balloons()
+            st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
+            st.session_state.audio_answers[i] = st.text_input(
+                f"Your answer {i+1}",
+                value=st.session_state.audio_answers[i],
+                key=f"audio_answer_{idx}",  # stable, unique per row
+            )
+
+        # ---------- check answers against the frozen sample ----------
+        if st.button("✅ Check Answers (Audio)", key="check_audio"):
+            score = 0
+            for i, idx in enumerate(st.session_state.audio_idx):
+                row = df.loc[idx]
+                gold = str(row["Term"]).strip().lower()
+                guess = str(st.session_state.audio_answers[i]).strip().lower()
+                if guess == gold:
+                    score += 1
+                    st.success(f"{i+1}. Correct!")
+                else:
+                    st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
+
+            st.success(f"Your score: {score} / {len(st.session_state.audio_idx)}")
+            if score == len(st.session_state.audio_idx):
+                st.balloons()
