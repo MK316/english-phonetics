@@ -1,6 +1,16 @@
 import streamlit as st
+# --- Imports (put these at the top of the file) ---
+from io import BytesIO
+
 import pandas as pd
-import numpy as np
+import streamlit as st
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 tab1, tab2=st.tabs(["tab1","tab2"])
 
