@@ -273,7 +273,7 @@ def build_pdf(df_user: pd.DataFrame, wrong_mask: pd.DataFrame, feedback_lines, g
 
     # Feedback section in PDF
     elements.append(Spacer(1, 10))
-    elements.append(Paragraph("🐾 Feedback", feedback_title_style))
+    elements.append(Paragraph("◕‿◕✿ Feedback", feedback_title_style))
     if feedback_lines:
         for line in feedback_lines:
             elements.append(Paragraph(line, fb_style))
