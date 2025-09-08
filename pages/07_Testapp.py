@@ -30,7 +30,7 @@ ipa_symbols = ["p","b","t","d","k","g","f","v","θ","ð","s","z","ʃ","ʒ","tʃ"
 # Centrality has "Not applicable"; Oro-nasal does NOT include it
 OPTIONS = {
     "Voicing": ["voiceless", "voiced"],
-    "Place": ["bilabial", "labio-dental", "dental", "alveolar", "post-alveolar", "palatal", "velar", "glottal"],
+    "Place": ["bilabial", "labio-dental", "labio-velar", "dental", "alveolar", "post-alveolar", "palatal", "velar", "glottal"],
     "Centrality": ["central", "lateral", "Not applicable"],
     "Oro-nasal": ["oral", "nasal"],
     "Manner": ["stop", "fricative", "affricate", "approximant"],
@@ -65,10 +65,10 @@ ANSWER_KEY = {
     "m":  {"Voicing":"voiced","Place":"bilabial","Centrality":"Not applicable","Oro-nasal":"nasal","Manner":"stop"},
     "n":  {"Voicing":"voiced","Place":"alveolar","Centrality":"Not applicable","Oro-nasal":"nasal","Manner":"stop"},
     "ŋ":  {"Voicing":"voiced","Place":"velar","Centrality":"Not applicable","Oro-nasal":"nasal","Manner":"stop"},
-    "ɹ":  {"Voicing":"voiced","Place":"post-alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
+    "ɹ":  {"Voicing":"voiced","Place":"alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
     "l":  {"Voicing":"voiced","Place":"alveolar","Centrality":"lateral","Oro-nasal":"oral","Manner":"approximant"},
     "j":  {"Voicing":"voiced","Place":"palatal","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
-    "w":  {"Voicing":"voiced","Place":"velar","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
+    "w":  {"Voicing":"voiced","Place":"labio-velar","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
 }
 
 # ===== State init =====
