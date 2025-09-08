@@ -238,7 +238,7 @@ def t2_new_item():
     st.session_state.result_tab2 = None
 
 # ---------------- Tabs ----------------
-tab1, tab2 = st.tabs(["Tab 1 — Read the transcription", "Tab 2 — Type after listening"])
+tab1, tab2 = st.tabs(["🌵 Tab 1 — transcription reading", "🌵 Tab 2 — Transcribing as you hear"])
 
 # ===== TAB 1 =====
 with tab1:
