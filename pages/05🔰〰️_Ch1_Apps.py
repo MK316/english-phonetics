@@ -199,7 +199,7 @@ with tab3:
         st.session_state.audio_answers = []      # parallel answers list
 
     # Explicit (re)sample: only when button is clicked
-    if st.button("🔄 New Practice (Audio)", key="new_audio"):
+    if st.button("🔄 Generate Practice Questions (Audio)", key="new_audio"):
         sample = df.sample(int(num_items_audio), random_state=None)
         st.session_state.audio_idx = sample.index.tolist()
         st.session_state.audio_answers = [""] * len(st.session_state.audio_idx)
