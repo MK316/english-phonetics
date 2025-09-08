@@ -16,8 +16,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 # ===== App setup =====
 st.set_page_config(page_title="IPA Practice — Feature Classification", layout="centered")
 st.title("IPA Practice — Feature Classification")
-
-st.caption("Select the correct features for each IPA symbol, then export a printable PDF.")
+st.caption("Pick features for each IPA symbol, then export a printable PDF.")
 
 # ---- Header fields (persist) ----
 cA, cB = st.columns(2)
@@ -44,72 +43,62 @@ OPTIONS = {
 DEFAULTS = {k: v[0] for k, v in OPTIONS.items()}  # first option per column
 columns = ["IPA", "Voicing", "Place", "Centrality", "Oro-nasal", "Manner"]
 
-# ---- Initialize state once with real defaults (no None) ----
+# ---- Initialize state ONCE with real defaults (no None, no blanks) ----
 if "ipa_df" not in st.session_state:
     st.session_state.ipa_df = pd.DataFrame(
         {"IPA": ipa_rows, **{col: [DEFAULTS[col]] * len(ipa_rows) for col in OPTIONS}}
     )
 
-# Keep a copy of pre-edit values to survive transient None during reruns
-_prev_df = st.session_state.ipa_df.copy(deep=True)
+# ---- Callback: persist edits coming from the editor ----
+def _save_edits():
+    # st.session_state["ipa_editor"] holds the latest edited DataFrame
+    edited = st.session_state["ipa_editor"]
+    # Keep only valid options (guard against transient None / invalids)
+    for col, valid in OPTIONS.items():
+        edited[col] = edited[col].where(edited[col].isin(valid), other=st.session_state.ipa_df[col])
+    st.session_state.ipa_df = edited
 
-# ---- Data editor with SelectboxColumn (no empty option) ----
+# ---- Data editor (no blank option; required=True) ----
 col_config = {
     "IPA": st.column_config.Column(label="IPA", disabled=True),
     "Voicing": st.column_config.SelectboxColumn(
-        label="Voicing", options=OPTIONS["Voicing"], required=True, default=DEFAULTS["Voicing"]
+        label="Voicing", options=OPTIONS["Voicing"], required=True
     ),
     "Place": st.column_config.SelectboxColumn(
-        label="Place", options=OPTIONS["Place"], required=True, default=DEFAULTS["Place"]
+        label="Place", options=OPTIONS["Place"], required=True
     ),
     "Centrality": st.column_config.SelectboxColumn(
-        label="Centrality", options=OPTIONS["Centrality"], required=True, default=DEFAULTS["Centrality"]
+        label="Centrality", options=OPTIONS["Centrality"], required=True
     ),
     "Oro-nasal": st.column_config.SelectboxColumn(
-        label="Oro-nasal", options=OPTIONS["Oro-nasal"], required=True, default=DEFAULTS["Oro-nasal"]
+        label="Oro-nasal", options=OPTIONS["Oro-nasal"], required=True
     ),
     "Manner": st.column_config.SelectboxColumn(
-        label="Manner", options=OPTIONS["Manner"], required=True, default=DEFAULTS["Manner"]
+        label="Manner", options=OPTIONS["Manner"], required=True
     ),
 }
 
-edited_df = st.data_editor(
+st.data_editor(
     st.session_state.ipa_df,
     use_container_width=True,
     hide_index=True,
     column_order=columns,
     column_config=col_config,
     num_rows="fixed",
-    key="ipa_editor",
+    key="ipa_editor",          # editor state lives here
+    on_change=_save_edits,     # save on every change
 )
-
-# ---- Reconcile choices AFTER edit: keep user value if valid; else keep previous valid; else default ----
-for col, valid in OPTIONS.items():
-    prev_col = _prev_df[col].tolist()
-    new_vals = []
-    for new_val, prev_val in zip(edited_df[col].tolist(), prev_col):
-        if new_val in valid:
-            new_vals.append(new_val)
-        elif prev_val in valid:
-            new_vals.append(prev_val)
-        else:
-            new_vals.append(DEFAULTS[col])
-    edited_df[col] = new_vals
-
-# Persist the reconciled DataFrame
-st.session_state.ipa_df = edited_df
 
 st.divider()
 
-# ---- PDF builder (portrait A4) with timestamp; tries to use a Unicode font if present ----
+# ---- PDF builder (portrait A4) with timestamp; tries Unicode font if present ----
 def _find_unicode_font():
-    candidates = [
+    for p in [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
         "fonts/DejaVuSans.ttf",
         "fonts/NotoSans-Regular.ttf",
-    ]
-    for p in candidates:
+    ]:
         if os.path.exists(p):
             try:
                 pdfmetrics.registerFont(TTFont("UnicodeBase", p))
@@ -143,10 +132,9 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
     ))
     elements.append(Spacer(1, 6))
 
-    # Table (keep IPA glyphs as-is)
     header = ["IPA", "Voicing", "Place", "Centrality", "Oro-nasal", "Manner"]
     table_data = [header]
-    for _, row in df.iterrows():
+    for _, row in st.session_state.ipa_df.iterrows():
         table_data.append([
             Paragraph(str(row["IPA"]), cell_style),
             Paragraph(str(row["Voicing"]), cell_style),
@@ -156,9 +144,7 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
             Paragraph(str(row["Manner"]), cell_style),
         ])
 
-    # Column widths tuned for A4 portrait
     col_widths = [40, 95, 115, 90, 95, 115]
-
     tbl = Table(table_data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
     tbl.setStyle(TableStyle([
         ("FONTNAME", (0,0), (-1,-1), base_font),
@@ -179,8 +165,8 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
     return buf.getvalue()
 
 # ---- Actions ----
-col_dl1, col_dl2 = st.columns(2)
-with col_dl1:
+c1, c2 = st.columns(2)
+with c1:
     if st.button("Export to PDF", type="primary"):
         pdf_bytes = build_pdf(st.session_state.ipa_df, group_name, student_name)
         st.success("PDF ready.")
@@ -190,7 +176,7 @@ with col_dl1:
             file_name=f"IPA_Practice_{(student_name or 'student').replace(' ', '_')}.pdf",
             mime="application/pdf",
         )
-with col_dl2:
+with c2:
     st.download_button(
         "Download CSV (backup)",
         data=st.session_state.ipa_df.to_csv(index=False).encode("utf-8"),
