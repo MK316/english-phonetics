@@ -35,7 +35,7 @@ with tab1:
     AUDIO_URL2 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide11a.mp3"
     AUDIO_URL3 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide11b.mp3"
     AUDIO_URL4 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide12.mp3"
-    
+    AUDIO_URL5 = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide20.mp3"
     # Use an MP4 / WebM file or a YouTube link for video:
     VIDEO_URL = "https://youtu.be/dQw4w9WgXcQ"  # <-- replace with your real link (or raw GitHub MP4)
 
@@ -58,7 +58,11 @@ with tab1:
         3. Please read pipe first, then vibe.
         """)
         st.audio(to_raw(AUDIO_URL4), format="audio/mp3")
-    
+
+    with st.expander("Slide #20 - Transcription reading", expanded=False):
+        st.markdown("Transcription reading")
+        st.audio(to_raw(AUDIO_URL5), format="audio/mp3")
+
     
     # Foldable line 2 — video
     with st.expander("Slide #8", expanded=False):
