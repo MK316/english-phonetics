@@ -196,7 +196,7 @@ with tab3:
         sample = df.sample(num_items_audio).reset_index(drop=True)
         st.session_state.audio_qs = sample[["Term", "Description", "Word count"]].to_dict("records")
         st.session_state.audio_answers = [""] * len(st.session_state.audio_qs)
-        st.experimental_rerun()
+        st.rerun()
 
     # ---------- render questions ----------
     for i, q in enumerate(st.session_state.audio_qs):
