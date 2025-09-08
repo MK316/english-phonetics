@@ -170,8 +170,28 @@ with tab2:
             st.balloons()
 
 # ---------------- Tab 3 — Audio Practice (Description -> Term) ----------------
+# ---------------- Tab 3 — Audio Practice (Description -> Term) ----------------
 with tab3:
     st.subheader("🔊 Practice Terms with Audio (Hear the definition, type the term)")
+
+    # Inject custom CSS to style all st.button elements (green bg, white text)
+    st.markdown("""
+        <style>
+        div.stButton > button {
+            background-color: #2e7d32;
+            color: white;
+            border-radius: 8px;
+            border: none;
+            padding: 0.6em 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        div.stButton > button:hover {
+            background-color: #1b5e20;
+            color: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
     num_items_audio = st.number_input(
         "How many terms?",
@@ -179,13 +199,11 @@ with tab3:
         max_value=len(df),
         value=3,
         key="audio_num",
-        help="Choose a number, then click New Practice to lock your questions."
+        help="Choose how many definitions you want to practice, then click New Practice."
     )
 
     # ---------- helpers ----------
     def speak(text: str) -> BytesIO:
-        from gtts import gTTS
-        from io import BytesIO
         tts = gTTS(text)
         fp = BytesIO()
         tts.write_to_fp(fp)
@@ -214,21 +232,20 @@ with tab3:
             row = df.loc[idx]  # same row for audio and grading
             term = str(row["Term"]).strip()
             desc = str(row["Description"]).strip()
-            wc = len(term.split())  # trust the term itself for word count
+            wc = len(term.split())  # trust the Term itself
 
             st.markdown(f"**{i+1}. Listen to the definition and type the correct term**")
             audio_bytes = speak(desc)
-            # Use Streamlit's audio widget (less caching weirdness)
             st.audio(audio_bytes, format="audio/mp3")
 
             st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
             st.session_state.audio_answers[i] = st.text_input(
                 f"Your answer {i+1}",
                 value=st.session_state.audio_answers[i],
-                key=f"audio_answer_{idx}",  # stable, unique per row
+                key=f"audio_answer_{idx}",  # stable key
             )
 
-        # ---------- check answers against the frozen sample ----------
+        # ---------- check answers ----------
         if st.button("✅ Check Answers (Audio)", key="check_audio"):
             score = 0
             for i, idx in enumerate(st.session_state.audio_idx):
@@ -240,8 +257,7 @@ with tab3:
                     st.success(f"{i+1}. Correct!")
                 else:
                     st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
-        
+
             st.success(f"Your score: {score} / {len(st.session_state.audio_idx)}")
             if score == len(st.session_state.audio_idx):
                 st.balloons()
-
