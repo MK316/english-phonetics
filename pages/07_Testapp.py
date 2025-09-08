@@ -1,5 +1,11 @@
+import streamlit as st
+import pandas as pd
+import numby as np
+
+tab1, tab2=st.tabs(["tab1","tab2"])
+
 # ---------------- Tab 2 ----------------
-with tab2:
+with tab1:
     import os
     from io import BytesIO
     import pandas as pd
