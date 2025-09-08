@@ -224,7 +224,7 @@ def build_pdf(df_user: pd.DataFrame, wrong_mask: pd.DataFrame, feedback_lines, g
     fb_style = ParagraphStyle("FB", parent=styles["Normal"], fontName=base_font, fontSize=9, leading=11)
 
     elements = []
-    elements.append(Paragraph("🐳 IPA Practice — 24 English consonants", title_style))
+    elements.append(Paragraph("ლ( ╹ ◡ ╹ ლ) IPA Practice — 24 English consonants", title_style))
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
     elements.append(Paragraph(
         f"Group: {group_name or ''} &nbsp;&nbsp; Name: {student_name or ''} &nbsp;&nbsp; Exported: {ts}",
