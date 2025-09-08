@@ -1,4 +1,4 @@
-# ========== Imports (TOP OF FILE) ==========
+# ===== Imports (top of file) =====
 from io import BytesIO
 from datetime import datetime
 import os
@@ -12,39 +12,38 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-# ==========================================
 
-
-st.set_page_config(page_title="IPA Practice — Feature Classification", layout="centered")
-st.title("IPA Practice — Feature Classification")
+# ===== App setup =====
+st.set_page_config(page_title="IPA Practice — Step-by-Step", layout="centered")
+st.title("IPA Practice — Step-by-Step Feature Classification")
 
 st.caption(
-    "Choose features for each IPA symbol, then export a printable PDF. "
-    "Oro-nasal includes *Not applicable*."
+    "Work through the five steps. Each step shows one feature for all symbols. "
+    "At the end, you’ll see correctness, feedback, and a PDF download."
 )
 
-# If you already have tabs, you can wrap this block in `with tab2:`.
-
-# ----- Header (persist) -----
-colA, colB = st.columns(2)
-with colA:
+# ----- Header info (persist) -----
+cA, cB = st.columns(2)
+with cA:
     group_name = st.text_input("Group", value=st.session_state.get("group_name", ""))
     st.session_state.group_name = group_name
-with colB:
+with cB:
     student_name = st.text_input("Name", value=st.session_state.get("student_name", ""))
     st.session_state.student_name = student_name
 
 st.divider()
 
-# ----- Symbols & feature options -----
-ipa_symbols = ["p","b","t","d","k","g","f","v","θ","ð","s","z","ʃ","ʒ","tʃ","dʒ","h","m","n","ŋ","ɹ","l","j","w"]
-feature_cols = ["Voicing", "Place", "Centrality", "Oro-nasal", "Manner"]
+# ===== Data / options =====
+FEATURES_ORDER = ["Voicing", "Place", "Centrality", "Oro-nasal", "Manner"]
 
+ipa_symbols = ["p","b","t","d","k","g","f","v","θ","ð","s","z","ʃ","ʒ","tʃ","dʒ","h","m","n","ŋ","ɹ","l","j","w"]
+
+# Options (as requested): Centrality has "Not applicable"; Oro-nasal no longer has it
 OPTIONS = {
     "Voicing": ["voiceless", "voiced"],
     "Place": ["bilabial", "labio-dental", "dental", "alveolar", "post-alveolar", "palatal", "velar", "glottal"],
-    "Centrality": ["central", "lateral"],
-    "Oro-nasal": ["oral", "nasal", "Not applicable"],   # << added option
+    "Centrality": ["central", "lateral", "Not applicable"],
+    "Oro-nasal": ["oral", "nasal"],
     "Manner": ["stop", "fricative", "affricate", "approximant"],
 }
 DEFAULTS = {
@@ -55,54 +54,99 @@ DEFAULTS = {
     "Manner": "stop",
 }
 
-# ----- Initialize state ONCE (each cell gets a default) -----
-if "ipa_selects" not in st.session_state:
-    st.session_state.ipa_selects = {}
-    for sym in ipa_symbols:
-        for col in feature_cols:
-            st.session_state.ipa_selects[f"{sym}__{col}"] = DEFAULTS[col]
+# A simple answer key that fits your option sets
+# Note: in this schema, nasals are marked "approximant" for Manner and "nasal" under Oro-nasal.
+ANSWER_KEY = {
+    "p":  {"Voicing":"voiceless","Place":"bilabial","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
+    "b":  {"Voicing":"voiced","Place":"bilabial","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
+    "t":  {"Voicing":"voiceless","Place":"alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
+    "d":  {"Voicing":"voiced","Place":"alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
+    "k":  {"Voicing":"voiceless","Place":"velar","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
+    "g":  {"Voicing":"voiced","Place":"velar","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
+    "f":  {"Voicing":"voiceless","Place":"labio-dental","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "v":  {"Voicing":"voiced","Place":"labio-dental","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "θ":  {"Voicing":"voiceless","Place":"dental","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "ð":  {"Voicing":"voiced","Place":"dental","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "s":  {"Voicing":"voiceless","Place":"alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "z":  {"Voicing":"voiced","Place":"alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "ʃ":  {"Voicing":"voiceless","Place":"post-alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "ʒ":  {"Voicing":"voiced","Place":"post-alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "tʃ": {"Voicing":"voiceless","Place":"post-alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"affricate"},
+    "dʒ": {"Voicing":"voiced","Place":"post-alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"affricate"},
+    "h":  {"Voicing":"voiceless","Place":"glottal","Centrality":"central","Oro-nasal":"oral","Manner":"fricative"},
+    "m":  {"Voicing":"voiced","Place":"bilabial","Centrality":"central","Oro-nasal":"nasal","Manner":"approximant"},
+    "n":  {"Voicing":"voiced","Place":"alveolar","Centrality":"central","Oro-nasal":"nasal","Manner":"approximant"},
+    "ŋ":  {"Voicing":"voiced","Place":"velar","Centrality":"central","Oro-nasal":"nasal","Manner":"approximant"},
+    "ɹ":  {"Voicing":"voiced","Place":"post-alveolar","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
+    "l":  {"Voicing":"voiced","Place":"alveolar","Centrality":"lateral","Oro-nasal":"oral","Manner":"approximant"},
+    "j":  {"Voicing":"voiced","Place":"palatal","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
+    "w":  {"Voicing":"voiced","Place":"velar","Centrality":"central","Oro-nasal":"oral","Manner":"approximant"},
+}
 
-# ----- Form (prevents reruns while choosing) -----
-with st.form("ipa_select_form", clear_on_submit=False):
-    # header row
-    hdr = st.columns([0.7, 1.2, 1.6, 1.2, 1.4, 1.6])
-    hdr[0].markdown("**IPA**")
-    hdr[1].markdown("**Voicing**")
-    hdr[2].markdown("**Place**")
-    hdr[3].markdown("**Centrality**")
-    hdr[4].markdown("**Oro-nasal**")
-    hdr[5].markdown("**Manner**")
+# ===== State init =====
+if "step" not in st.session_state:
+    st.session_state.step = 0  # 0..4 => feature steps; 5 => results
+if "selections" not in st.session_state:
+    st.session_state.selections = {
+        feat: {sym: DEFAULTS[feat] for sym in ipa_symbols} for feat in FEATURES_ORDER
+    }
 
-    for sym in ipa_symbols:
-        cols = st.columns([0.7, 1.2, 1.6, 1.2, 1.4, 1.6])
-        cols[0].markdown(f"**{sym}**")
+# ===== Helper: render one-step form =====
+def render_step(feature_name: str):
+    pretty = feature_name
+    help_text = {
+        "Voicing": "Choose voiced / voiceless.",
+        "Place": "Choose one place of articulation.",
+        "Centrality": "Choose central / lateral / Not applicable.",
+        "Oro-nasal": "Choose oral / nasal.",
+        "Manner": "Choose stop / fricative / affricate / approximant.",
+    }[feature_name]
 
-        for i, col in enumerate(feature_cols, start=1):
-            key = f"{sym}__{col}"
-            opts = OPTIONS[col]
-            current = st.session_state.ipa_selects.get(key, DEFAULTS[col])
-            # The key stores the current selection; index only used first render
-            cols[i].selectbox(
-                col,
-                options=opts,
-                index=opts.index(current) if current in opts else 0,
-                key=key,
+    st.markdown(f"### Step {st.session_state.step + 1} of 5 — {pretty}")
+    st.caption(help_text)
+
+    with st.form(f"form_{feature_name}", clear_on_submit=False):
+        # header
+        hdr = st.columns([0.7, 2.5])
+        hdr[0].markdown("**IPA**")
+        hdr[1].markdown(f"**{pretty}**")
+
+        for sym in ipa_symbols:
+            cols = st.columns([0.7, 2.5])
+            cols[0].markdown(f"**{sym}**")
+            current = st.session_state.selections[feature_name][sym]
+            cols[1].selectbox(
+                label=feature_name,
+                options=OPTIONS[feature_name],
+                index=OPTIONS[feature_name].index(current) if current in OPTIONS[feature_name] else 0,
+                key=f"sel__{feature_name}__{sym}",
                 label_visibility="collapsed",
             )
 
-    submitted = st.form_submit_button("Generate PDF", type="primary")
+        next_label = "Finish & Check" if feature_name == "Manner" else "Next ▶️"
+        submitted = st.form_submit_button(next_label, type="primary")
 
-# ----- Build DataFrame only on submit -----
+    if submitted:
+        # save choices back to selections
+        for sym in ipa_symbols:
+            st.session_state.selections[feature_name][sym] = st.session_state.get(
+                f"sel__{feature_name}__{sym}", st.session_state.selections[feature_name][sym]
+            )
+        # go to next stage
+        st.session_state.step += 1
+        st.experimental_rerun()
+
+# ===== Helper: build user DataFrame from selections =====
 def selections_to_df():
-    rows = []
+    data = []
     for sym in ipa_symbols:
         row = {"IPA": sym}
-        for col in feature_cols:
-            row[col] = st.session_state.ipa_selects.get(f"{sym}__{col}", DEFAULTS[col])
-        rows.append(row)
-    return pd.DataFrame(rows, columns=["IPA"] + feature_cols)
+        for feat in FEATURES_ORDER:
+            row[feat] = st.session_state.selections[feat][sym]
+        data.append(row)
+    return pd.DataFrame(data, columns=["IPA"] + FEATURES_ORDER)
 
-# ----- PDF helpers -----
+# ===== PDF helpers =====
 def _find_unicode_font():
     for p in [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -139,7 +183,7 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
     ))
     elements.append(Spacer(1, 6))
 
-    header = ["IPA"] + feature_cols
+    header = ["IPA"] + FEATURES_ORDER
     data = [header]
     for _, r in df.iterrows():
         data.append([
@@ -151,7 +195,7 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
             Paragraph(str(r["Manner"]), cell_style),
         ])
 
-    col_widths = [35, 95, 120, 90, 110, 120]  # tuned for A4 portrait
+    col_widths = [35, 90, 120, 100, 90, 120]
     tbl = Table(data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
     tbl.setStyle(TableStyle([
         ("FONTNAME", (0,0), (-1,-1), base_font),
@@ -170,23 +214,65 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
     buf.seek(0)
     return buf.getvalue()
 
-# ----- Actions -----
-if submitted:
-    df_out = selections_to_df()
-    st.session_state["last_df"] = df_out
-    pdf_bytes = build_pdf(df_out, group_name, student_name)
-    st.success("PDF ready. You can download it below.")
-    st.download_button(
-        "📥 Download PDF",
-        data=pdf_bytes,
-        file_name=f"IPA_Practice_{(student_name or 'student').replace(' ', '_')}.pdf",
-        mime="application/pdf",
+# ===== Flow control =====
+if st.session_state.step < len(FEATURES_ORDER):
+    # render the current step
+    render_step(FEATURES_ORDER[st.session_state.step])
+else:
+    # ===== Results =====
+    st.markdown("### Results")
+    df_user = selections_to_df()
+
+    # Build the answer DataFrame aligned to user DF
+    df_ans = pd.DataFrame(
+        [{"IPA": sym, **ANSWER_KEY[sym]} for sym in ipa_symbols],
+        columns=["IPA"] + FEATURES_ORDER
     )
 
-if "last_df" in st.session_state:
-    st.download_button(
-        "Download CSV (backup)",
-        data=st.session_state["last_df"].to_csv(index=False).encode("utf-8"),
-        file_name=f"IPA_Practice_{(student_name or 'student').replace(' ', '_')}.csv",
-        mime="text/csv",
-    )
+    # Compare for correctness (feature columns only)
+    wrong_mask = pd.DataFrame(False, index=df_user.index, columns=df_user.columns)
+    for feat in FEATURES_ORDER:
+        wrong_mask[feat] = df_user[feat] != df_ans[feat]
+    # IPA column never styled as wrong
+    wrong_mask["IPA"] = False
+
+    # Style: wrong cells black + white text
+    def _style_wrong(df: pd.DataFrame):
+        styles = pd.DataFrame("", index=df.index, columns=df.columns)
+        styles = styles.mask(wrong_mask, other="background-color: black; color: white;")
+        return styles
+
+    styled = df_user.style.apply(_style_wrong, axis=None)
+    st.write(styled)
+
+    # Feedback list
+    incorrect_rows = []
+    for i, sym in enumerate(df_user["IPA"]):
+        wrong_feats = [feat for feat in FEATURES_ORDER if wrong_mask.loc[i, feat]]
+        if wrong_feats:
+            detail = ", ".join(
+                f"{feat}: expected {df_ans.loc[i, feat]} / got {df_user.loc[i, feat]}"
+                for feat in wrong_feats
+            )
+            incorrect_rows.append(f"• **{sym}** — {detail}")
+
+    if incorrect_rows:
+        st.error("Some entries need review:")
+        st.markdown("\n".join(incorrect_rows))
+    else:
+        st.success("🎉 All correct!")
+
+    st.divider()
+
+    # Generate PDF + download
+    if st.button("Generate PDF", type="primary"):
+        pdf_bytes = build_pdf(df_user, group_name, student_name)
+        st.download_button(
+            "📥 Download PDF",
+            data=pdf_bytes,
+            file_name=f"IPA_Practice_{(student_name or 'student').replace(' ', '_')}.pdf",
+            mime="application/pdf",
+        )
+
+    # Optional: restart
+    st.button("Start Over", on_click=lambda: st.session_state.update(step=0))
