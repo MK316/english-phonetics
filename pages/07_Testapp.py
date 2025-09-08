@@ -22,23 +22,12 @@ st.caption(
     "At the end, you’ll see correctness, feedback, and a PDF download."
 )
 
-# ----- Header info (persist) -----
-cA, cB = st.columns(2)
-with cA:
-    group_name = st.text_input("Group", value=st.session_state.get("group_name", ""))
-    st.session_state.group_name = group_name
-with cB:
-    student_name = st.text_input("Name", value=st.session_state.get("student_name", ""))
-    st.session_state.student_name = student_name
-
-st.divider()
-
 # ===== Data / options =====
 FEATURES_ORDER = ["Voicing", "Place", "Centrality", "Oro-nasal", "Manner"]
 
 ipa_symbols = ["p","b","t","d","k","g","f","v","θ","ð","s","z","ʃ","ʒ","tʃ","dʒ","h","m","n","ŋ","ɹ","l","j","w"]
 
-# Options (as requested): Centrality has "Not applicable"; Oro-nasal no longer has it
+# Centrality has "Not applicable"; Oro-nasal does NOT include it
 OPTIONS = {
     "Voicing": ["voiceless", "voiced"],
     "Place": ["bilabial", "labio-dental", "dental", "alveolar", "post-alveolar", "palatal", "velar", "glottal"],
@@ -54,8 +43,7 @@ DEFAULTS = {
     "Manner": "stop",
 }
 
-# A simple answer key that fits your option sets
-# Note: in this schema, nasals are marked "approximant" for Manner and "nasal" under Oro-nasal.
+# Answer key aligned to the option sets (as discussed)
 ANSWER_KEY = {
     "p":  {"Voicing":"voiceless","Place":"bilabial","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
     "b":  {"Voicing":"voiced","Place":"bilabial","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
@@ -90,8 +78,52 @@ if "selections" not in st.session_state:
     st.session_state.selections = {
         feat: {sym: DEFAULTS[feat] for sym in ipa_symbols} for feat in FEATURES_ORDER
     }
+if "group_name" not in st.session_state:
+    st.session_state.group_name = ""
+if "student_name" not in st.session_state:
+    st.session_state.student_name = ""
 
-# ===== Helper: render one-step form =====
+# ===== Reset helpers =====
+def reset_all():
+    # 1) step
+    st.session_state.step = 0
+    # 2) feature choices back to defaults
+    st.session_state.selections = {
+        feat: {sym: DEFAULTS[feat] for sym in ipa_symbols} for feat in FEATURES_ORDER
+    }
+    # 3) clear all selectbox widget states so UI shows defaults
+    for feat in FEATURES_ORDER:
+        for sym in ipa_symbols:
+            st.session_state.pop(f"sel__{feat}__{sym}", None)
+    # 4) clear header fields
+    st.session_state.group_name = ""
+    st.session_state.student_name = ""
+    st.rerun()
+
+def start_over_keep():
+    # Only jump back to step 0; keep all choices and names
+    st.session_state.step = 0
+    st.rerun()
+
+# ===== Header controls =====
+col_btn1, col_btn2 = st.columns(2)
+with col_btn1:
+    st.button("Start Over (keep choices)", on_click=start_over_keep)
+with col_btn2:
+    st.button("Reset All (clear everything)", on_click=reset_all)
+
+# ----- Header info (persist) -----
+col1, col2 = st.columns(2)
+with col1:
+    group_name = st.text_input("Group", value=st.session_state.group_name)
+    st.session_state.group_name = group_name
+with col2:
+    student_name = st.text_input("Name", value=st.session_state.student_name)
+    st.session_state.student_name = student_name
+
+st.divider()
+
+# ===== Step renderer =====
 def render_step(feature_name: str):
     pretty = feature_name
     help_text = {
@@ -106,7 +138,7 @@ def render_step(feature_name: str):
     st.caption(help_text)
 
     with st.form(f"form_{feature_name}", clear_on_submit=False):
-        # header
+        # header row
         hdr = st.columns([0.7, 2.5])
         hdr[0].markdown("**IPA**")
         hdr[1].markdown(f"**{pretty}**")
@@ -132,11 +164,11 @@ def render_step(feature_name: str):
             st.session_state.selections[feature_name][sym] = st.session_state.get(
                 f"sel__{feature_name}__{sym}", st.session_state.selections[feature_name][sym]
             )
-        # go to next stage
+        # advance to next stage
         st.session_state.step += 1
         st.rerun()
 
-# ===== Helper: build user DataFrame from selections =====
+# ===== Convert selections to DataFrame =====
 def selections_to_df():
     data = []
     for sym in ipa_symbols:
@@ -233,12 +265,11 @@ else:
     wrong_mask = pd.DataFrame(False, index=df_user.index, columns=df_user.columns)
     for feat in FEATURES_ORDER:
         wrong_mask[feat] = df_user[feat] != df_ans[feat]
-    # IPA column never styled as wrong
-    wrong_mask["IPA"] = False
+    wrong_mask["IPA"] = False  # never style the symbol column as wrong
 
     # Style: wrong cells black + white text
-    def _style_wrong(df: pd.DataFrame):
-        styles = pd.DataFrame("", index=df.index, columns=df.columns)
+    def _style_wrong(_):
+        styles = pd.DataFrame("", index=df_user.index, columns=df_user.columns)
         styles = styles.mask(wrong_mask, other="background-color: black; color: white;")
         return styles
 
@@ -266,13 +297,17 @@ else:
 
     # Generate PDF + download
     if st.button("Generate PDF", type="primary"):
-        pdf_bytes = build_pdf(df_user, group_name, student_name)
+        pdf_bytes = build_pdf(df_user, st.session_state.group_name, st.session_state.student_name)
         st.download_button(
             "📥 Download PDF",
             data=pdf_bytes,
-            file_name=f"IPA_Practice_{(student_name or 'student').replace(' ', '_')}.pdf",
+            file_name=f"IPA_Practice_{(st.session_state.student_name or 'student').replace(' ', '_')}.pdf",
             mime="application/pdf",
         )
 
-    # Optional: restart
-    st.button("Start Over", on_click=lambda: st.session_state.update(step=0))
+    # Restart controls
+    c1, c2 = st.columns(2)
+    with c1:
+        st.button("Start Over (keep choices)", on_click=start_over_keep)
+    with c2:
+        st.button("Reset All (clear everything)", on_click=reset_all)
