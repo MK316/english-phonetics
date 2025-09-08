@@ -247,7 +247,7 @@ with tab1:
     item = DATASET[st.session_state.idx_tab1]
     fmt, audio_bytes = audio_for_word(item["word"])
 
-    st.write(f"**Word:** {item['word']}")
+    # st.write(f"**Word:** {item['word']}")
 
     # Show ONLY the selected transcription type
     shown = item[TARGET_KEY]
@@ -276,7 +276,7 @@ with tab2:
     item2 = DATASET[st.session_state.idx_tab2]
     fmt2, audio_bytes2 = audio_for_word(item2["word"])
 
-    st.write(f"**Word:** {item2['word']}")
+    #st.write(f"**Word:** {item2['word']}")
     st.audio(audio_bytes2, format=f"audio/{fmt2}")
 
     placeholder = f"{WRAP_LEFT}{item2[TARGET_KEY]}{WRAP_RIGHT} (example format)"
