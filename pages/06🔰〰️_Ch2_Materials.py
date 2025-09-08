@@ -31,7 +31,7 @@ with tab1:
         return url.replace("https://github.com/", "https://raw.githubusercontent.com/").replace("/blob/", "/")
 
     # Your media
-    AUDIO_URL = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/audio-overview.mp3"
+    AUDIO_URL = "https://github.com/MK316/english-phonetics/blob/main/pages/audio/Ch2-Slide6.mp3"
     # Use an MP4 / WebM file or a YouTube link for video:
     VIDEO_URL = "https://youtu.be/dQw4w9WgXcQ"  # <-- replace with your real link (or raw GitHub MP4)
 
