@@ -29,9 +29,9 @@ st.markdown("### 🎧 Transcription Practice")
 raw_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata1.csv"
 
 # ---------------- Mode switch (Phonemic // vs Phonetic []) ----------------
-st.markdown("#### Transcription Mode")
+st.markdown("### 📕 1. Transcription Mode")
 mode = st.radio(
-    "📕 1. Choose which transcription to practice:",
+    "Choose which transcription to practice:",
     options=["Phonemic //", "Phonetic []"],
     horizontal=True,
     key="mode",
