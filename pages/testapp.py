@@ -24,23 +24,20 @@ st.caption(
 
 # =========================
 # Sample dataset (replace later)
-# Fields:
+# Fields per item:
 #   word: orthographic form
-#   ipa: target phonemic transcription (no length colon)
-#   audio_url: if you have hosted audio, put a direct URL; leave '' to use the built-in beep
-#   feedback: short tip shown on feedback
+#   ipa: phonemic transcription (no length colon)
+#   feedback: guidance shown to learners
 # =========================
 DATASET: List[Dict[str, str]] = [
     {
         "word": "language",
-        "ipa": "ˈlæŋɡwɪdʒ",  # no ː colons, phonemic
-        "audio_url": "",       # replace with your real URL later
+        "ipa": "ˈlæŋɡwɪdʒ",   # no ː
         "feedback": "Note the cluster /ŋɡ/ and the affricate /dʒ/ at the end.",
     },
     {
         "word": "linguistics",
-        "ipa": "lɪŋˈɡwɪstɪks",  # no ː colons, phonemic
-        "audio_url": "",         # replace with your real URL later
+        "ipa": "lɪŋˈɡwɪstɪks",  # no ː
         "feedback": "Pay attention to /ŋɡw/ cluster; no long-vowel marks are used.",
     },
 ]
@@ -49,19 +46,18 @@ DATASET: List[Dict[str, str]] = [
 # Helpers
 # =========================
 def ensure_state():
-    # Per-tab current index
+    # Per-tab indices
     if "idx_tab1" not in st.session_state:
         st.session_state.idx_tab1 = random.randrange(len(DATASET))
     if "idx_tab2" not in st.session_state:
         st.session_state.idx_tab2 = random.randrange(len(DATASET))
 
-    # For tab2 answers
     if "typed_answer" not in st.session_state:
         st.session_state.typed_answer = ""
 
-    # Feedback toggles
     if "show_feedback_tab1" not in st.session_state:
         st.session_state.show_feedback_tab1 = False
+
     if "result_tab2" not in st.session_state:
         st.session_state.result_tab2 = None  # ("correct"/"wrong", message)
 
@@ -71,19 +67,14 @@ ensure_state()
 def pick_new_random(old_idx: int, n: int) -> int:
     if n <= 1:
         return 0
-    # try to avoid immediate repetition
-    choices = [i for i in range(n) if i != old_idx]
-    return random.choice(choices)
+    pool = [i for i in range(n) if i != old_idx]
+    return random.choice(pool)
 
 
 def sine_beep_wav_bytes(freq=440.0, seconds=0.7, samplerate=16000, volume=0.3) -> bytes:
-    """
-    Make a small WAV in-memory (mono) so audio always plays even if no URL is provided.
-    """
+    """Small in-memory mono WAV as a fallback if TTS fails."""
     t = np.linspace(0, seconds, int(samplerate * seconds), endpoint=False)
     wave_data = (volume * np.sin(2 * math.pi * freq * t)).astype(np.float32)
-
-    # Convert to 16-bit PCM
     data_int16 = (wave_data * 32767.0).astype(np.int16)
 
     bio = io.BytesIO()
@@ -96,39 +87,52 @@ def sine_beep_wav_bytes(freq=440.0, seconds=0.7, samplerate=16000, volume=0.3) -
     return bio.read()
 
 
-def audio_source(item: Dict[str, str]) -> Tuple[Optional[str], Optional[bytes]]:
+@st.cache_data(show_spinner=False)
+def gtts_bytes(text: str, lang: str = "en") -> bytes:
+    """Synthesize TTS via gTTS and return MP3 bytes. Cached for speed."""
+    from gtts import gTTS
+    bio = io.BytesIO()
+    gTTS(text=text, lang=lang, slow=False).write_to_fp(bio)
+    bio.seek(0)
+    return bio.read()
+
+
+def audio_for_word(word: str) -> Tuple[str, bytes]:
     """
-    Return either (url, None) if url exists, else (None, wav_bytes) as fallback.
+    Return ("mp3", bytes) if gTTS succeeds, else ("wav", beep_bytes).
     """
-    url = item.get("audio_url", "").strip()
-    if url:
-        return url, None
-    return None, sine_beep_wav_bytes()
+    try:
+        mp3 = gtts_bytes(word, lang="en")
+        return "mp3", mp3
+    except Exception:
+        # Fallback: simple beep
+        return "wav", sine_beep_wav_bytes()
 
 
 def normalize_phonemic(s: str) -> str:
     """
-    Normalize user's typed phonemic transcription:
+    Normalize student's typed phonemic transcription:
     - NFKC normalization
-    - remove slashes/brackets, spaces, and stress marks
-    - remove long-vowel colon if present (shouldn't be, but we accept and ignore)
-    - map ASCII 'g' to IPA 'ɡ'
-    - map 'ʤ' -> 'dʒ', 't͡ʃ' -> 'tʃ'
+    - remove slashes/brackets, whitespace
+    - remove stress marks (ˈ, ˌ) and length (ː, :)
+    - map ASCII 'g' → IPA 'ɡ'
+    - unify common affricate variants
     """
     if not s:
         return ""
     s = unicodedata.normalize("NFKC", s)
-    # Remove delimiters and whitespace
+
     for ch in "/[](){} \t\n\r":
         s = s.replace(ch, "")
-    # Remove stress / length marks
+
     for ch in ["ˈ", "ˌ", "ː", ":"]:
         s = s.replace(ch, "")
+
     # Common equivalences
-    s = s.replace("ʤ", "dʒ")   # alt affricate glyph
+    s = s.replace("ʤ", "dʒ")   # alt affricate
     s = s.replace("t͡ʃ", "tʃ")  # tie-bar variant
-    # Map ASCII g to IPA ɡ (if user typed 'g')
-    # Careful to not clobber 'ŋɡ' etc; do a simple char replace
+
+    # ASCII 'g' to IPA 'ɡ'
     s = s.replace("g", "ɡ")
     return s
 
@@ -148,8 +152,11 @@ def compare_transcription(user_input: str, item: Dict[str, str]) -> Tuple[bool, 
     if user_norm == target_norm:
         return True, "✅ Correct!"
     else:
-        # Provide simple diff style: show what we received vs target (normalized)
-        msg = f"❌ Not quite.\n\n**Your input (norm):** `{user_norm}`\n\n**Target:** `{target_norm}`"
+        msg = (
+            "❌ Not quite.\n\n"
+            f"**Your input (normalized):** `{user_norm}`\n\n"
+            f"**Target:** `{target_norm}`"
+        )
         return False, msg
 
 
@@ -163,23 +170,22 @@ with tab1:
     st.subheader("Read the transcription while listening")
 
     item = DATASET[st.session_state.idx_tab1]
-    url, wav_bytes = audio_source(item)
+    fmt, audio_bytes = audio_for_word(item["word"])
 
     st.write(f"**Word:** {item['word']}")
     st.write(f"**Phonemic transcription:** /{item['ipa']}/  *(No long-vowel colon)*")
 
-    # Audio
-    if url:
-        st.audio(url, format="audio/mp3")
+    if fmt == "mp3":
+        st.audio(audio_bytes, format="audio/mp3")
     else:
-        st.audio(wav_bytes, format="audio/wav")
+        st.audio(audio_bytes, format="audio/wav")
 
     c1, c2 = st.columns(2)
     with c1:
         if st.button("🔁 New item", key="t1_new"):
             st.session_state.idx_tab1 = pick_new_random(st.session_state.idx_tab1, len(DATASET))
             st.session_state.show_feedback_tab1 = False
-            st.rerun()
+            st.rerun()  # one click, immediate refresh
     with c2:
         if st.button("💡 Show feedback", key="t1_fb"):
             st.session_state.show_feedback_tab1 = True
@@ -192,23 +198,23 @@ with tab2:
     st.subheader("Type the transcription after listening")
 
     item2 = DATASET[st.session_state.idx_tab2]
-    url2, wav_bytes2 = audio_source(item2)
+    fmt2, audio_bytes2 = audio_for_word(item2["word"])
 
-    # Audio only (don't show the IPA here)
-    st.write(f"**Word:** {item2['word']}")  # if you want to hide the word, comment this out
-    if url2:
-        st.audio(url2, format="audio/mp3")
+    # Optionally hide the word by commenting the next line
+    st.write(f"**Word:** {item2['word']}")
+
+    if fmt2 == "mp3":
+        st.audio(audio_bytes2, format="audio/mp3")
     else:
-        st.audio(wav_bytes2, format="audio/wav")
+        st.audio(audio_bytes2, format="audio/wav")
 
-    # Input
     st.text_input(
         "Type the phonemic transcription (no long-vowel colon):",
         key="typed_answer",
         placeholder="e.g., /lɪŋˈɡwɪstɪks/",
     )
 
-    colA, colB, colC = st.columns([1,1,1])
+    colA, colB, colC = st.columns([1, 1, 1])
     with colA:
         if st.button("✅ Check", key="t2_check"):
             ok, msg = compare_transcription(st.session_state.typed_answer, item2)
@@ -225,7 +231,6 @@ with tab2:
             st.session_state.result_tab2 = None
             st.rerun()
 
-    # Feedback
     if st.session_state.result_tab2:
         status, msg = st.session_state.result_tab2
         if status == "correct":
@@ -238,17 +243,7 @@ with tab2:
 # =========================
 with st.expander("ℹ️ How to replace the sample dataset"):
     st.markdown(
-        """
-        The app reads the in-code `DATASET` list (near the top).  
-        Each item needs:
-        - `word`: orthographic form
-        - `ipa`: phonemic transcription **without long-vowel colons** (e.g., `ˈlæŋɡwɪdʒ`)
-        - `audio_url`: direct URL to an audio file (mp3/wav). If empty, the app plays a short beep.
-        - `feedback`: short tip string
-
-        Example:
-        ```python
-        DATASET = [
-            {"word": "language", "ipa": "ˈlæŋɡwɪdʒ", "audio_url": "https://.../language.mp3",
-             "feedback": "Note the cluster /ŋɡ/ and the affricate /dʒ/."},
-            {"word": "linguistics", "ipa": "lɪŋˈ
+        "- Edit the `DATASET` list near the top of this file.\n"
+        "- Use **phonemic** transcription without long-vowel colons (e.g., `ˈlæŋɡwɪdʒ`).\n"
+        "- The app generates audio with **gTTS** for the word string.\n"
+    )
