@@ -43,7 +43,7 @@ DEFAULTS = {
     "Manner": "stop",
 }
 
-# Answer key aligned to the option sets (as discussed)
+# Answer key aligned to the option sets (simplified)
 ANSWER_KEY = {
     "p":  {"Voicing":"voiceless","Place":"bilabial","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
     "b":  {"Voicing":"voiced","Place":"bilabial","Centrality":"central","Oro-nasal":"oral","Manner":"stop"},
@@ -82,35 +82,32 @@ if "group_name" not in st.session_state:
     st.session_state.group_name = ""
 if "student_name" not in st.session_state:
     st.session_state.student_name = ""
+if "pdf_bytes" not in st.session_state:
+    st.session_state.pdf_bytes = None
 
 # ===== Reset helpers =====
 def reset_all():
-    # 1) step
     st.session_state.step = 0
-    # 2) feature choices back to defaults
     st.session_state.selections = {
         feat: {sym: DEFAULTS[feat] for sym in ipa_symbols} for feat in FEATURES_ORDER
     }
-    # 3) clear all selectbox widget states so UI shows defaults
     for feat in FEATURES_ORDER:
         for sym in ipa_symbols:
             st.session_state.pop(f"sel__{feat}__{sym}", None)
-    # 4) clear header fields
     st.session_state.group_name = ""
     st.session_state.student_name = ""
     st.rerun()
 
 def start_over_keep():
-    # Only jump back to step 0; keep all choices and names
     st.session_state.step = 0
     st.rerun()
 
-# ===== Header controls =====
+# ===== Header controls (unique keys to avoid duplicates) =====
 col_btn1, col_btn2 = st.columns(2)
 with col_btn1:
-    st.button("Start Over (keep choices)", on_click=start_over_keep)
+    st.button("Start Over (keep choices)", key="btn_start_over_top", on_click=start_over_keep)
 with col_btn2:
-    st.button("Reset All (clear everything)", on_click=reset_all)
+    st.button("Reset All (clear everything)", key="btn_reset_all_top", on_click=reset_all)
 
 # ----- Header info (persist) -----
 col1, col2 = st.columns(2)
@@ -125,7 +122,6 @@ st.divider()
 
 # ===== Step renderer =====
 def render_step(feature_name: str):
-    pretty = feature_name
     help_text = {
         "Voicing": "Choose voiced / voiceless.",
         "Place": "Choose one place of articulation.",
@@ -134,14 +130,14 @@ def render_step(feature_name: str):
         "Manner": "Choose stop / fricative / affricate / approximant.",
     }[feature_name]
 
-    st.markdown(f"### Step {st.session_state.step + 1} of 5 — {pretty}")
+    st.markdown(f"### Step {st.session_state.step + 1} of 5 — {feature_name}")
     st.caption(help_text)
 
     with st.form(f"form_{feature_name}", clear_on_submit=False):
         # header row
         hdr = st.columns([0.7, 2.5])
         hdr[0].markdown("**IPA**")
-        hdr[1].markdown(f"**{pretty}**")
+        hdr[1].markdown(f"**{feature_name}**")
 
         for sym in ipa_symbols:
             cols = st.columns([0.7, 2.5])
@@ -159,16 +155,14 @@ def render_step(feature_name: str):
         submitted = st.form_submit_button(next_label, type="primary")
 
     if submitted:
-        # save choices back to selections
         for sym in ipa_symbols:
             st.session_state.selections[feature_name][sym] = st.session_state.get(
                 f"sel__{feature_name}__{sym}", st.session_state.selections[feature_name][sym]
             )
-        # advance to next stage
         st.session_state.step += 1
         st.rerun()
 
-# ===== Convert selections to DataFrame =====
+# ===== Utilities =====
 def selections_to_df():
     data = []
     for sym in ipa_symbols:
@@ -177,6 +171,27 @@ def selections_to_df():
             row[feat] = st.session_state.selections[feat][sym]
         data.append(row)
     return pd.DataFrame(data, columns=["IPA"] + FEATURES_ORDER)
+
+def compute_wrong_mask_and_feedback(df_user: pd.DataFrame):
+    df_ans = pd.DataFrame(
+        [{"IPA": sym, **ANSWER_KEY[sym]} for sym in ipa_symbols],
+        columns=["IPA"] + FEATURES_ORDER
+    )
+    wrong_mask = pd.DataFrame(False, index=df_user.index, columns=df_user.columns)
+    for feat in FEATURES_ORDER:
+        wrong_mask[feat] = df_user[feat] != df_ans[feat]
+    wrong_mask["IPA"] = False
+
+    feedback_lines = []
+    for i, sym in enumerate(df_user["IPA"]):
+        wrong_feats = [feat for feat in FEATURES_ORDER if wrong_mask.loc[i, feat]]
+        if wrong_feats:
+            detail = ", ".join(
+                f"{feat}: expected {df_ans.loc[i, feat]} / got {df_user.loc[i, feat]}"
+                for feat in wrong_feats
+            )
+            feedback_lines.append(f"• {sym} — {detail}")
+    return wrong_mask, feedback_lines, df_ans
 
 # ===== PDF helpers =====
 def _find_unicode_font():
@@ -194,7 +209,7 @@ def _find_unicode_font():
                 pass
     return "Helvetica"
 
-def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
+def build_pdf(df_user: pd.DataFrame, wrong_mask: pd.DataFrame, feedback_lines, group_name: str, student_name: str) -> bytes:
     buf = BytesIO()
     doc = SimpleDocTemplate(
         buf, pagesize=A4, leftMargin=24, rightMargin=24, topMargin=28, bottomMargin=28,
@@ -205,6 +220,8 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
     title_style = ParagraphStyle("Title", parent=styles["Heading2"], fontName=base_font, spaceAfter=6)
     meta_style  = ParagraphStyle("Meta",  parent=styles["Normal"],   fontName=base_font, fontSize=9, spaceAfter=10)
     cell_style  = ParagraphStyle("Cell",  parent=styles["BodyText"], fontName=base_font, fontSize=9, leading=11)
+    feedback_title_style = ParagraphStyle("FBTitle", parent=styles["Heading3"], fontName=base_font, spaceBefore=10, spaceAfter=4)
+    fb_style = ParagraphStyle("FB", parent=styles["Normal"], fontName=base_font, fontSize=9, leading=11)
 
     elements = []
     elements.append(Paragraph("IPA Practice — Feature Classification", title_style))
@@ -215,9 +232,10 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
     ))
     elements.append(Spacer(1, 6))
 
+    # Build table data
     header = ["IPA"] + FEATURES_ORDER
     data = [header]
-    for _, r in df.iterrows():
+    for _, r in df_user.iterrows():
         data.append([
             Paragraph(str(r["IPA"]), cell_style),
             Paragraph(str(r["Voicing"]), cell_style),
@@ -229,7 +247,9 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
 
     col_widths = [35, 90, 120, 100, 90, 120]
     tbl = Table(data, colWidths=col_widths, repeatRows=1, hAlign="LEFT")
-    tbl.setStyle(TableStyle([
+
+    # Base table style
+    style_cmds = [
         ("FONTNAME", (0,0), (-1,-1), base_font),
         ("FONTSIZE", (0,0), (-1,-1), 9),
         ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#f0f2f6")),
@@ -239,8 +259,26 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
         ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#fbfbfb")]),
         ("TOPPADDING", (0,0), (-1,-1), 3),
         ("BOTTOMPADDING", (0,0), (-1,-1), 3),
-    ]))
+    ]
+
+    # Add wrong cell highlights (remember: table rows are +1 due to header)
+    for i in range(len(df_user)):
+        for j, feat in enumerate(FEATURES_ORDER, start=1):
+            if wrong_mask.loc[i, feat]:
+                style_cmds.append(("BACKGROUND", (j, i+1), (j, i+1), colors.black))
+                style_cmds.append(("TEXTCOLOR", (j, i+1), (j, i+1), colors.white))
+
+    tbl.setStyle(TableStyle(style_cmds))
     elements.append(tbl)
+
+    # Feedback section in PDF
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Feedback", feedback_title_style))
+    if feedback_lines:
+        for line in feedback_lines:
+            elements.append(Paragraph(line, fb_style))
+    else:
+        elements.append(Paragraph("All correct. Well done!", fb_style))
 
     doc.build(elements)
     buf.seek(0)
@@ -248,66 +286,52 @@ def build_pdf(df: pd.DataFrame, group_name: str, student_name: str) -> bytes:
 
 # ===== Flow control =====
 if st.session_state.step < len(FEATURES_ORDER):
-    # render the current step
     render_step(FEATURES_ORDER[st.session_state.step])
 else:
     # ===== Results =====
     st.markdown("### Results")
     df_user = selections_to_df()
+    wrong_mask, feedback_lines, df_ans = compute_wrong_mask_and_feedback(df_user)
 
-    # Build the answer DataFrame aligned to user DF
-    df_ans = pd.DataFrame(
-        [{"IPA": sym, **ANSWER_KEY[sym]} for sym in ipa_symbols],
-        columns=["IPA"] + FEATURES_ORDER
-    )
-
-    # Compare for correctness (feature columns only)
-    wrong_mask = pd.DataFrame(False, index=df_user.index, columns=df_user.columns)
-    for feat in FEATURES_ORDER:
-        wrong_mask[feat] = df_user[feat] != df_ans[feat]
-    wrong_mask["IPA"] = False  # never style the symbol column as wrong
-
-    # Style: wrong cells black + white text
-    def _style_wrong(_):
+    # Style: wrong cells black + white text (on screen)
+    def _style_wrong(_df):
         styles = pd.DataFrame("", index=df_user.index, columns=df_user.columns)
         styles = styles.mask(wrong_mask, other="background-color: black; color: white;")
         return styles
 
-    styled = df_user.style.apply(_style_wrong, axis=None)
-    st.write(styled)
+    st.write(df_user.style.apply(_style_wrong, axis=None))
 
-    # Feedback list
-    incorrect_rows = []
-    for i, sym in enumerate(df_user["IPA"]):
-        wrong_feats = [feat for feat in FEATURES_ORDER if wrong_mask.loc[i, feat]]
-        if wrong_feats:
-            detail = ", ".join(
-                f"{feat}: expected {df_ans.loc[i, feat]} / got {df_user.loc[i, feat]}"
-                for feat in wrong_feats
-            )
-            incorrect_rows.append(f"• **{sym}** — {detail}")
-
-    if incorrect_rows:
+    # Feedback on screen
+    if feedback_lines:
         st.error("Some entries need review:")
-        st.markdown("\n".join(incorrect_rows))
+        st.markdown("\n".join([f"- {ln}" for ln in feedback_lines]))
     else:
         st.success("🎉 All correct!")
 
     st.divider()
 
-    # Generate PDF + download
-    if st.button("Generate PDF", type="primary"):
-        pdf_bytes = build_pdf(df_user, st.session_state.group_name, st.session_state.student_name)
+    # Generate & Download PDF (two-step; unique keys)
+    colg, cold = st.columns([1,1])
+    with colg:
+        if st.button("Generate PDF", key="btn_gen_pdf"):
+            st.session_state.pdf_bytes = build_pdf(
+                df_user, wrong_mask, feedback_lines, st.session_state.group_name, st.session_state.student_name
+            )
+            st.success("PDF generated. Use the button on the right to download.")
+    with cold:
         st.download_button(
             "📥 Download PDF",
-            data=pdf_bytes,
+            data=st.session_state.pdf_bytes if st.session_state.pdf_bytes else b"",
             file_name=f"IPA_Practice_{(st.session_state.student_name or 'student').replace(' ', '_')}.pdf",
             mime="application/pdf",
+            disabled=st.session_state.pdf_bytes is None,
+            key="btn_download_pdf"
         )
 
-    # Restart controls
-    c1, c2 = st.columns(2)
-    with c1:
-        st.button("Start Over (keep choices)", on_click=start_over_keep)
-    with c2:
-        st.button("Reset All (clear everything)", on_click=reset_all)
+    # Bottom restart controls (unique keys to avoid duplicates)
+    st.divider()
+    cb1, cb2 = st.columns(2)
+    with cb1:
+        st.button("Start Over (keep choices)", key="btn_start_over_bottom", on_click=start_over_keep)
+    with cb2:
+        st.button("Reset All (clear everything)", key="btn_reset_all_bottom", on_click=reset_all)
