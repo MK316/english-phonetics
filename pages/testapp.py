@@ -1,5 +1,5 @@
-# transcription_practice_from_github.py
-# Run: streamlit run transcription_practice_from_github.py
+# transcription_practice_from_github_with_ipa_embed.py
+# Run: streamlit run transcription_practice_from_github_with_ipa_embed.py
 
 import io
 import math
@@ -11,21 +11,52 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 # ---------------- Page setup ----------------
-st.set_page_config(page_title="Transcription Practice (GitHub CSV)", layout="centered")
+st.set_page_config(page_title="Transcription Practice (GitHub CSV) + IPA keyboard", layout="wide")
 st.title("🎧 Transcription Practice (GitHub CSV)")
 
 st.caption(
-    "Provide a GitHub **RAW** CSV URL with columns: "
+    "Paste a GitHub **RAW** CSV URL with columns: "
     "**Word**, **Phonemic Transcription**, **Phonetic Transcription**, **Feedback**.\n\n"
-    "Tab 1: Read the transcription while listening, then type the **word**.\n"
-    "Tab 2: Listen first, then type the **phonemic** transcription (no long-vowel colon)."
+    "Use the embedded IPA keyboard to type symbols. "
+    "Pick **Phonemic** (//) or **Phonetic** ([]) mode for practice."
 )
 
-# ---------------- RAW URL input (edit this default for your repo) ----------------
+# ---------------- RAW URL (edit default for your repo) ----------------
 DEFAULT_RAW_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata1.csv"  # e.g., "https://raw.githubusercontent.com/MK316/classmaterial/refs/heads/main/Phonetics/transcription_items.csv"
-raw_url = st.text_input("GitHub RAW CSV URL", value=DEFAULT_RAW_URL, placeholder="https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/IPAdata1.csv")
+raw_url = st.text_input(
+    "GitHub RAW CSV URL",
+    value=DEFAULT_RAW_URL,
+    placeholder="https://raw.githubusercontent.com/USER/REPO/BRANCH/path/to/file.csv",
+)
+
+# ---------------- Mode switch (Phonemic // vs Phonetic []) ----------------
+st.markdown("#### Transcription Mode")
+mode = st.radio(
+    "Choose which transcription to practice:",
+    options=["Phonemic //", "Phonetic []"],
+    horizontal=True,
+    key="mode",
+)
+# Map to dataset keys and wrappers
+if mode.startswith("Phonemic"):
+    TARGET_KEY = "phonemic"
+    WRAP_LEFT, WRAP_RIGHT = "/", "/"
+    MODE_LABEL = "phonemic"
+else:
+    TARGET_KEY = "phonetic"
+    WRAP_LEFT, WRAP_RIGHT = "[", "]"
+    MODE_LABEL = "phonetic"
+
+# ---------------- IPA typing page (embedded, above tabs) ----------------
+st.markdown("### 🍊 [fənɛɾɪks]: IPA TypeIt Tool (Embedded)")
+st.markdown("You can use the full IPA keyboard below to input transcriptions.")
+st.markdown("Weblink – https://ipa.typeit.org/")
+components.iframe("https://ipa.typeit.org/", height=300, scrolling=True)
+
+st.divider()
 
 # ---------------- Sample fallback dataset ----------------
 SAMPLE_DF = pd.DataFrame(
@@ -116,14 +147,12 @@ def audio_for_word(word: str) -> Tuple[str, bytes]:
 
 # ---------------- State ----------------
 def ensure_state():
-    # dataset size guard
     st.session_state.setdefault("n_items", len(DATASET))
     if st.session_state.n_items != len(DATASET):
         st.session_state.n_items = len(DATASET)
         st.session_state["idx_tab1"] = 0
         st.session_state["idx_tab2"] = 0
 
-    # indices
     st.session_state.setdefault("idx_tab1", 0)
     st.session_state.setdefault("idx_tab2", 0)
 
@@ -155,7 +184,16 @@ def normalize_word(s: str) -> str:
 def compare_word(user_word: str, target_word: str) -> bool:
     return normalize_word(user_word) == normalize_word(target_word)
 
-def normalize_phonemic(s: str) -> str:
+def normalize_phonemic_or_phonetic(s: str) -> str:
+    """
+    Normalization applied to both modes:
+    - NFKC
+    - remove slashes/brackets/whitespace
+    - remove stress (ˈ, ˌ) & length (ː, :)
+    - unify affricates: ʤ->dʒ, t͡ʃ->tʃ
+    - ASCII g -> IPA ɡ
+    (Other diacritics are left intact for phonetic detail.)
+    """
     if not s:
         return ""
     s = unicodedata.normalize("NFKC", s)
@@ -168,8 +206,8 @@ def normalize_phonemic(s: str) -> str:
     s = s.replace("g", "ɡ")
     return s
 
-def compare_transcription(user_input: str, target_phonemic: str) -> bool:
-    return normalize_phonemic(user_input) == normalize_phonemic(target_phonemic)
+def compare_transcription(user_input: str, target_str: str) -> bool:
+    return normalize_phonemic_or_phonetic(user_input) == normalize_phonemic_or_phonetic(target_str)
 
 # ---------------- Button callbacks ----------------
 def t1_new_item():
@@ -189,9 +227,10 @@ def t1_clear():
 
 def t2_check():
     item = DATASET[st.session_state.idx_tab2]
-    ok = compare_transcription(st.session_state.typed_answer, item["phonemic"])
+    target = item[TARGET_KEY]  # phonemic or phonetic
+    ok = compare_transcription(st.session_state.typed_answer, target)
     st.session_state.result_tab2 = ("correct" if ok else "wrong",
-                                    "Correct" if ok else (item["feedback"] or "Listen again and try the phonemic form."))
+                                    "Correct" if ok else (item["feedback"] or f"Listen again and try the {MODE_LABEL} form."))
 
 def t2_clear():
     st.session_state.typed_answer = ""
@@ -207,14 +246,17 @@ tab1, tab2 = st.tabs(["Tab 1 — Read the transcription", "Tab 2 — Type after 
 
 # ===== TAB 1 =====
 with tab1:
-    st.subheader("Read the transcription while listening")
+    st.subheader(f"Read the {MODE_LABEL} transcription while listening")
 
     item = DATASET[st.session_state.idx_tab1]
     fmt, audio_bytes = audio_for_word(item["word"])
 
     st.write(f"**Word:** {item['word']}")
-    st.write(f"**Phonemic transcription:** /{item['phonemic']}/  *(No long-vowel colon)*")
-    st.caption(f"Phonetic transcription: [{item['phonetic']}]")
+
+    # Show ONLY the selected transcription type
+    shown = item[TARGET_KEY]
+    st.write(f"**{MODE_LABEL.capitalize()} transcription:** {WRAP_LEFT}{shown}{WRAP_RIGHT}")
+
     st.audio(audio_bytes, format=f"audio/{fmt}")
 
     st.text_input("Type the word (orthographic):", key="t1_typed_word", placeholder="e.g., language")
@@ -233,7 +275,7 @@ with tab1:
 
 # ===== TAB 2 =====
 with tab2:
-    st.subheader("Type the transcription after listening")
+    st.subheader(f"Type the {MODE_LABEL} transcription after listening")
 
     item2 = DATASET[st.session_state.idx_tab2]
     fmt2, audio_bytes2 = audio_for_word(item2["word"])
@@ -241,10 +283,11 @@ with tab2:
     st.write(f"**Word:** {item2['word']}")
     st.audio(audio_bytes2, format=f"audio/{fmt2}")
 
+    placeholder = f"{WRAP_LEFT}{item2[TARGET_KEY]}{WRAP_RIGHT} (example format)"
     st.text_input(
-        "Type the **phonemic transcription** (no long-vowel colon):",
+        f"Type the **{MODE_LABEL} transcription**:",
         key="typed_answer",
-        placeholder="e.g., /lɪŋˈɡwɪstɪks/",
+        placeholder=placeholder,
     )
 
     colA, colB, colC = st.columns(3)
@@ -260,4 +303,4 @@ with tab2:
         (st.success if status == "correct" else st.error)(msg)
 
 # --------------- Footer ---------------
-st.caption(f"Dataset items: {len(DATASET)}")
+st.caption(f"Dataset items: {len(DATASET)}  •  Mode: {MODE_LABEL}")
