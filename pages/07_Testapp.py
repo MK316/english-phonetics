@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numby as np
+import numpy as np
 
 tab1, tab2=st.tabs(["tab1","tab2"])
 
