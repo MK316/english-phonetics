@@ -50,7 +50,7 @@ else:
 st.markdown("### 🍊 [fənɛɾɪks]: IPA TypeIt Tool (Embedded)")
 st.markdown("You can use the full IPA keyboard below to input transcriptions.")
 st.markdown("Weblink – https://ipa.typeit.org/")
-components.iframe("https://ipa.typeit.org/", height=200, scrolling=True)
+components.iframe("https://ipa.typeit.org/", height=400, scrolling=True)
 
 st.divider()
 
