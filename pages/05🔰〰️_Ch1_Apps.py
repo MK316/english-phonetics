@@ -149,6 +149,9 @@ with tab2:
             else:
                 st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
         st.success(f"Your score: {score} / {num_items}")
+        if score == num_items:
+            st.balloons()
+
 
 # ---------------- Tab 3 — Audio Practice ----------------
 with tab3:
@@ -193,3 +196,6 @@ with tab3:
             else:
                 st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
         st.success(f"Your score: {score} / {num_items_audio}")
+        if score == num_items_audio:
+            st.balloons()
+
