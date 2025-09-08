@@ -225,7 +225,7 @@ with tab3:
 
     # If nothing sampled yet, prompt to start
     if not st.session_state.audio_idx:
-        st.info("Set the number above and click **New Practice (Audio)** to start.")
+        st.info("Set the number above and click **Generate Practice Question (Audio)** button to start.")
     else:
         # ---------- render frozen questions ----------
         for i, idx in enumerate(st.session_state.audio_idx):
