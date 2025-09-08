@@ -158,10 +158,16 @@ with tab3:
     st.subheader("🔊 Practice Terms with Audio")
     num_items_audio = st.number_input("How many terms?", min_value=1, max_value=len(df), value=3, key="audio_input")
 
-    if "audio_items" not in st.session_state or st.button("🔄 New Practice (Audio)", key="new_audio"):
+    if "audio_items" not in st.session_state:
         st.session_state.audio_items = df.sample(num_items_audio).reset_index(drop=True)
         st.session_state.audio_answers = [""] * num_items_audio
         st.session_state.audio_score = None
+
+    if st.button("🔄 New Practice (Audio)", key="new_audio"):
+        st.session_state.audio_items = df.sample(num_items_audio).reset_index(drop=True)
+        st.session_state.audio_answers = [""] * num_items_audio
+        st.session_state.audio_score = None
+
 
     def speak(text):
         tts = gTTS(text)
