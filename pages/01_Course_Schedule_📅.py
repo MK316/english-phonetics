@@ -4,6 +4,7 @@ import pandas as pd
 
 st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
 st.title("📘 Course Overview")
+st.markdown("[Syllabus](https://github.com/MK316/english-phonetics/raw/main/pages/data/fSyllabus_2025F_Phonetics.pdf)")
 
 tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "TBA"])
 
