@@ -26,10 +26,10 @@ ANSWER_KEY = {
     6:  ["uvula"],
     7:  ["epiglottis"],
     8:  ["lower lip"],
-    9:  ["tongue tip","tip of the tongue"],
+    9:  ["tongue tip", "tip of the tongue"],
     10: ["tongue blade", "blade of the tongue"],
     11: ["front of the tongue", "tongue front"],
-    12: ["center of the tongue","tongue center"],
+    12: ["center of the tongue", "tongue center"],
     13: ["back of the tongue", "tongue back"],
     14: ["tongue root", "root of the tongue"],
 }
@@ -54,8 +54,18 @@ def is_correct(num: int, user_text: str) -> bool:
 def load_data():
     url = "https://raw.githubusercontent.com/MK316/classmaterial/main/Phonetics/ch01_glossary.csv"
     df = pd.read_csv(url)
-    df = df.dropna(subset=["Term", "Word count", "Description"])
-    df["Word count"] = df["Word count"].astype(int)
+    # keep required fields
+    df = df.dropna(subset=["Term", "Description"])
+    # coerce Word count
+    if "Word count" in df.columns:
+        df["Word count"] = pd.to_numeric(df["Word count"], errors="coerce").fillna(0).astype(int)
+    else:
+        df["Word count"] = 0
+    # coerce Syllable (digits)
+    if "Syllable" in df.columns:
+        df["Syllable"] = pd.to_numeric(df["Syllable"], errors="coerce").astype("Int64")
+    else:
+        df["Syllable"] = pd.Series([pd.NA] * len(df), dtype="Int64")
     return df
 
 df = load_data()
@@ -68,6 +78,38 @@ def tts_bytes(text: str) -> bytes:
     fp.seek(0)
     return fp.read()
 
+# --------------- Count + prompt helpers ---------------
+def word_count_from_row(row) -> int:
+    """
+    Prefer dataset 'Word count'. Fallback: strip parentheticals/variants before counting.
+    """
+    try:
+        wc = int(row["Word count"])
+        return wc if wc > 0 else 1
+    except Exception:
+        pass
+    term = str(row.get("Term", "")).strip()
+    term = re.sub(r"\(.*?\)", "", term)
+    term = re.split(r"\s*(?:/|,| or )\s*", term, maxsplit=1)[0]
+    term = " ".join(term.split())
+    wc = len(term.split())
+    return wc if wc > 0 else 1
+
+def syllable_count_from_row(row):
+    try:
+        s = int(row["Syllable"])
+        return s if s > 0 else None
+    except Exception:
+        return None
+
+def answer_prompt(row) -> str:
+    wc = word_count_from_row(row)
+    syl = syllable_count_from_row(row)
+    bits = [f"{wc} word{'s' if wc != 1 else ''}"]
+    if syl is not None:
+        bits.append(f"{syl} syllable{'s' if syl != 1 else ''}")
+    return "Type your answer: (" + ", ".join(bits) + ")"
+
 # --------------- Report generation (PDF with fallbacks) ---------------
 def build_report_bytes(user_name: str, score: int, total: int, wrong_items: list):
     """
@@ -77,7 +119,8 @@ def build_report_bytes(user_name: str, score: int, total: int, wrong_items: list
     title = "Chapter 1: Phonetics Term Practice"
     now_kr = datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y-%m-%d %H:%M")
     base_name = f"{title.replace(' ', '_')}_{user_name.replace(' ', '_')}_{now_kr.replace(':','-')}"
-    # Try reportlab first
+
+    # Try reportlab
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.pdfgen import canvas
@@ -103,21 +146,20 @@ def build_report_bytes(user_name: str, score: int, total: int, wrong_items: list
             for ln in wrap:
                 write_line(ln, font="Helvetica", size=11, dy=dy)
 
-        # Title
+        # Header
         write_line(title, font="Helvetica-Bold", size=16, dy=22)
         write_line(f"Name: {user_name}", size=11)
         write_line(f"Date (KST): {now_kr}", size=11)
         write_line(f"Score: {score} / {total}", size=11)
         y -= 8
 
-        # Incorrect list
+        # Incorrect
         write_line("Incorrect Answers", font="Helvetica-Bold", size=13, dy=18)
         if not wrong_items:
             write_line("None — All correct! 🎉", size=11)
         else:
             for i, item in enumerate(wrong_items, 1):
-                need_new_page = y < 6*cm  # add a new page if we're low
-                if need_new_page:
+                if y < 6*cm:
                     c.showPage()
                     y = height - y_margin
                 write_line(f"{i}. {item['term']}", font="Helvetica-Bold", size=12)
@@ -133,7 +175,7 @@ def build_report_bytes(user_name: str, score: int, total: int, wrong_items: list
         return f"{base_name}.pdf", "application/pdf", pdf_bytes
 
     except Exception:
-        # Try fpdf (fpdf2)
+        # Try fpdf2
         try:
             from fpdf import FPDF
             pdf = FPDF()
@@ -168,7 +210,7 @@ def build_report_bytes(user_name: str, score: int, total: int, wrong_items: list
             out = pdf.output(dest="S").encode("latin1")
             return f"{base_name}.pdf", "application/pdf", out
         except Exception:
-            # Fallback: TXT
+            # Fallback TXT
             lines = [
                 title,
                 f"Name: {user_name}",
@@ -189,8 +231,11 @@ def build_report_bytes(user_name: str, score: int, total: int, wrong_items: list
             txt = "\n".join(lines).encode("utf-8")
             return f"{base_name}.txt", "text/plain", txt
 
-# ---------------- Hint builder for Tab 2 ----------------
+# --------------- Hint builder for Tab 2 ---------------
 def hint_from_term(term: str, underscores: int = 4) -> str:
+    """
+    'Respiratory system' -> 'r____ s____'
+    """
     words = re.split(r"\s+", str(term).strip())
     hinted = []
     for w in words:
@@ -294,14 +339,13 @@ with tab2:
     for i, row in st.session_state.text_items.iterrows():
         desc = str(row["Description"]).strip()
         term = str(row["Term"]).strip()
-        wc = len(term.split())
         st.markdown(f"**{i+1}. {desc}**")
         hint = hint_from_term(term, underscores=HINT_UNDERSCORES)
         st.markdown(
             f"<div style='opacity:0.8; margin-top:-0.25rem;'>Hint: <code>{hint}</code></div>",
             unsafe_allow_html=True
         )
-        st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
+        st.write(answer_prompt(row))
         st.session_state.text_answers[i] = st.text_input(
             f"Your answer {i+1}",
             value=st.session_state.text_answers[i],
@@ -371,11 +415,10 @@ with tab3:
             row = df.loc[idx]
             term = str(row["Term"]).strip()
             desc = str(row["Description"]).strip()
-            wc = len(term.split())
 
             st.markdown(f"**{i+1}. Listen to the definition and type the correct term**")
             st.audio(tts_bytes(desc), format="audio/mp3")
-            st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
+            st.write(answer_prompt(row))
             st.session_state.audio_answers[i] = st.text_input(
                 f"Your answer {i+1}",
                 value=st.session_state.audio_answers[i],
@@ -404,11 +447,13 @@ with tab4:
     # --- Username and Start ---
     name_col, btn_col = st.columns([2, 1])
     with name_col:
-        user_name = st.text_input("Enter your name", key="tab4_user_name")
+        typed_name = st.text_input("Enter your name", key="tab4_user_name_input")
     with btn_col:
         start_clicked = st.button("Start quiz ▶️", use_container_width=True, key="tab4_start")
 
     # --- initialize state ---
+    if "tab4_user_name" not in st.session_state:
+        st.session_state.tab4_user_name = ""
     if "tab4_started" not in st.session_state:
         st.session_state.tab4_started = False
     if "tab4_done" not in st.session_state:
@@ -422,11 +467,11 @@ with tab4:
 
     # Start logic
     if start_clicked:
-        if not user_name.strip():
+        if not typed_name.strip():
             st.warning("Please enter your name to begin.")
         else:
-            # shuffle all terms
-            order = df.sample(frac=1, random_state=None).index.tolist()
+            st.session_state.tab4_user_name = typed_name.strip()
+            order = df.sample(frac=1, random_state=None).index.tolist()  # shuffle all terms
             st.session_state.tab4_order = order
             st.session_state.tab4_idx = 0
             st.session_state.tab4_answers = [""] * len(order)
@@ -442,19 +487,17 @@ with tab4:
         row = df.loc[st.session_state.tab4_order[idx]]
         term = str(row["Term"]).strip()
         desc = str(row["Description"]).strip()
-        wc = len(term.split())
 
         st.info(f"Question {idx+1} of {total}")
         st.audio(tts_bytes(desc), format="audio/mp3")
+        st.write(answer_prompt(row))
 
-        st.write(f"Type your answer: ({wc} word{'s' if wc > 1 else ''})")
         ans_key = f"tab4_answer_{idx}"
-        # preserve current input across reruns
         current_value = st.session_state.tab4_answers[idx]
         new_value = st.text_input("Your answer", value=current_value, key=ans_key)
         st.session_state.tab4_answers[idx] = new_value
 
-        colA, colB = st.columns([1,1])
+        colA, colB = st.columns([1, 1])
         with colA:
             if st.button("⏮️ Restart quiz", use_container_width=True, key="tab4_restart"):
                 st.session_state.tab4_started = False
@@ -475,7 +518,6 @@ with tab4:
     # Quiz completed -> summary + PDF download
     if st.session_state.tab4_done:
         total = len(st.session_state.tab4_order)
-        # Build results
         results = []
         score = 0
         wrong_items = []
@@ -496,9 +538,8 @@ with tab4:
 
         st.success(f"✅ Finished! Score: **{score} / {total}**")
 
-        # Build report
-        user_name_final = user_name.strip() if "tab4_user_name" in st.session_state else "Anonymous"
-        filename, mime, data = build_report_bytes(user_name_final or "Anonymous", score, total, wrong_items)
+        user_for_report = st.session_state.tab4_user_name or "Anonymous"
+        filename, mime, data = build_report_bytes(user_for_report, score, total, wrong_items)
         st.download_button(
             "📄 Download PDF Report",
             data=data,
@@ -512,7 +553,10 @@ with tab4:
             st.write("🎉 None — great job!")
         else:
             for item in wrong_items:
-                st.markdown(f"- **{item['term']}** — {item['description']}  \n  _Your answer:_ {item['your_answer'] or '—'}")
+                st.markdown(
+                    f"- **{item['term']}** — {item['description']}  \n"
+                    f"  _Your answer:_ {item['your_answer'] or '—'}"
+                )
 
         if st.button("🔁 Take again", use_container_width=True, key="tab4_take_again"):
             st.session_state.tab4_started = False
