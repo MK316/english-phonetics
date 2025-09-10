@@ -11,7 +11,7 @@ import textwrap
 
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Basic applications", page_icon="🗣️", layout="wide")
-st.title("🗣️ Understanding Speech Production")
+st.markdown("### 🗣️ Understanding Speech Production")
 
 # ---------------- Image + Answer Key (Tab 1) ----------------
 IMAGE_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/images/vocal_organ.png"
@@ -246,7 +246,7 @@ def hint_from_term(term: str, underscores: int = 4) -> str:
 
 # ---------------- Tabs ----------------
 tab1, tab2, tab3, tab4 = st.tabs(
-    ["🌀 Vocal organs", "🌀 Term Practice (Text)", "🌀 Term Practice (Audio)", "🌀 Audio Quiz (One-by-one + PDF)"]
+    ["🌀 Vocal organs", "🌀 Term Practice (Text)", "🌀 Term Practice (Audio)", "🍔 Audio Quiz"]
 )
 
 # ---------------- Tab 1 ----------------
@@ -442,7 +442,7 @@ with tab3:
 
 # ---------------- Tab 4 — Audio Quiz (one-by-one + PDF report) ----------------
 with tab4:
-    st.subheader("🧪 Audio Quiz — One by One (Generates PDF report)")
+    st.subheader("🧪 Audio Quiz — with a PDF report)")
 
     # --- Username and Start ---
     name_col, btn_col = st.columns([2, 1])
@@ -468,7 +468,7 @@ with tab4:
     # Start logic
     if start_clicked:
         if not typed_name.strip():
-            st.warning("Please enter your name to begin.")
+            st.warning("Please enter your name to begin. Once you start, you can't change the user name.")
         else:
             st.session_state.tab4_user_name = typed_name.strip()
             order = df.sample(frac=1, random_state=None).index.tolist()  # shuffle all terms
