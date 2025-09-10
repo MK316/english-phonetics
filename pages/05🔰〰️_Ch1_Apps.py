@@ -11,7 +11,7 @@ import textwrap
 
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Basic applications", page_icon="🗣️", layout="wide")
-st.markdown("### 🗣️ Understanding Speech Production")
+st.markdown("#### 🗣️ Understanding Speech Production")
 
 # ---------------- Image + Answer Key (Tab 1) ----------------
 IMAGE_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/images/vocal_organ.png"
