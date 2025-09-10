@@ -442,7 +442,7 @@ with tab3:
 
 # ---------------- Tab 4 — Audio Quiz (one-by-one + PDF report) ----------------
 with tab4:
-    st.subheader("🧪 Audio Quiz — with a PDF report)")
+    st.subheader("🧪 Audio Quiz — with a PDF report")
 
     # --- Username and Start ---
     name_col, btn_col = st.columns([2, 1])
