@@ -18,17 +18,24 @@ if "show_meaning" not in st.session_state:
     st.session_state.show_meaning = False
 if "selected_term" not in st.session_state:
     st.session_state.selected_term = None
+if "quiz_index" not in st.session_state:
+    st.session_state.quiz_index = 0
 if "term_list" not in st.session_state:
-    st.session_state.term_list = []
+    st.session_state.term_list = df.sample(frac=1).reset_index(drop=True)  # shuffled list for quiz
+if "score" not in st.session_state:
+    st.session_state.score = 0
 
-# Tab1: Term list display with filters
-tab1, tab2, tab3 = st.tabs(["Term List", "Practice Mode", "Quiz Mode"])
+# Create tabs
+tab1, tab2, tab3 = st.tabs(["📘 Term List", "🎲 Random Practice", "📝 Quiz Mode"])
 
-
-
-# Tab2: Random term practice
+# Tab 1: Show the full term list
 with tab1:
-    st.subheader("🎲 Practice Random Term")
+    st.subheader("📘 Full Glossary")
+    st.dataframe(df)
+
+# Tab 2: Random Practice
+with tab2:
+    st.subheader("🎲 Practice a Random Term")
 
     def pick_random_term():
         st.session_state.selected_row = df.sample(1).iloc[0]
@@ -47,16 +54,22 @@ with tab1:
             st.markdown(f"**Term:** {row['Term']}")
             st.markdown(f"**Meaning:** {row['Description']}")
 
-# Tab3: Audio quiz
-with tab2:
-    st.subheader("🔊 Guess the Term from Description")
+# Tab 3: Audio Description → Term Guess (Quiz Mode)
+with tab3:
+    st.subheader("🔊 Audio Quiz: Guess the Term")
 
-    def get_random_term():
-        row = df.sample(1).iloc[0]
-        st.session_state.selected_term = row
+    def get_next_quiz_term():
+        st.session_state.selected_term = st.session_state.term_list.iloc[st.session_state.quiz_index]
 
-    if st.button("🔁 New Audio" ):
-        get_random_term()
+    if st.button("🔁 Next"):
+        if st.session_state.quiz_index < len(st.session_state.term_list):
+            get_next_quiz_term()
+            st.session_state.quiz_index += 1
+        else:
+            st.warning("🎉 You've completed the quiz!")
+            st.session_state.quiz_index = 0
+            st.session_state.score = 0
+            st.session_state.term_list = df.sample(frac=1).reset_index(drop=True)
 
     if st.session_state.selected_term is not None:
         text = st.session_state.selected_term["Description"]
@@ -69,6 +82,9 @@ with tab2:
         if answer:
             correct = st.session_state.selected_term["Term"].strip().lower()
             if answer.strip().lower() == correct:
-                st.success("Correct!")
+                st.success("✅ Correct!")
+                st.session_state.score += 1
             else:
-                st.error(f"Incorrect. The correct answer is: {correct}")
+                st.error(f"❌ Incorrect. The correct answer was: {correct}")
+
+    st.markdown(f"**Score:** {st.session_state.score}")
