@@ -15,7 +15,7 @@ apps = [
     {
         "name": "2. Consonant Full Description",
         "url": "https://sound-description-1.streamlit.app/",
-        "description": "Review English consonants by their place, manner, and voicing with visual guides."
+        "description": "Review English consonants by their voicing, place, manner, centrality, and oro-nasal process."
     },
     {
         "name": "3. Chapter 1 Term Practice & Quiz",
