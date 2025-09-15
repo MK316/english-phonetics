@@ -16,7 +16,7 @@ st.markdown("#### 📘 Term Practice: Text, Audio, and Quiz")
 # ---------------- Load glossary data ----------------
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/MK316/classmaterial/main/Phonetics/ch01_glossary.csv"
+    url = "https://raw.githubusercontent.com/MK316/classmaterial/main/Phonetics/ch01_glossary_0915.csv"
     df = pd.read_csv(url)
     df = df.dropna(subset=["Term", "Description"])
     if "Word count" in df.columns:
