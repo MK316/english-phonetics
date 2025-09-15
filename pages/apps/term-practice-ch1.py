@@ -190,7 +190,7 @@ with tab3:
         st.write(answer_prompt(row))
         st.session_state.quiz_answers[idx] = st.text_input("Your answer:", value=st.session_state.quiz_answers[idx])
 
-        col1, col2 = st.columns([1, 1])
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
             if st.button("⏮️ Restart"):
                 st.session_state.quiz_started = False
@@ -218,3 +218,67 @@ with tab3:
                     st.success(f"Total Score: {score} / {total}")
                     if score == total:
                         st.balloons()
+
+        with col3:
+            if st.button("⏹️ Force quit and generate report"):
+                # Stop quiz immediately
+                st.session_state.quiz_started = False
+
+                # Process all answers (mark unanswered as incorrect)
+                total = len(st.session_state.quiz_order)
+                results = []
+                score = 0
+
+                for i, idx in enumerate(st.session_state.quiz_order):
+                    row = df.loc[idx]
+                    correct = " ".join(str(row["Term"]).strip().lower().split())
+                    guess = " ".join(str(st.session_state.quiz_answers[i]).strip().lower().split())
+
+                    is_correct = guess == correct
+                    if is_correct:
+                        score += 1
+
+                    results.append({
+                        "No.": i + 1,
+                        "Your Answer": st.session_state.quiz_answers[i] or "—",
+                        "Correct Answer": row["Term"],
+                        "Result": "✅ Correct" if is_correct else "❌ Incorrect"
+                    })
+
+                # Generate PDF report
+                from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.lib.pagesizes import A4
+                from reportlab.lib import colors
+                from io import BytesIO
+
+                buffer = BytesIO()
+                doc = SimpleDocTemplate(buffer, pagesize=A4)
+                styles = getSampleStyleSheet()
+                elements = []
+
+                elements.append(Paragraph(f"Audio Quiz Report for {st.session_state.quiz_user}", styles["Title"]))
+                elements.append(Spacer(1, 12))
+                elements.append(Paragraph(f"Total Score: {score} / {total}", styles["Heading2"]))
+                elements.append(Spacer(1, 12))
+
+                table_data = [["No.", "Your Answer", "Correct Answer", "Result"]]
+                for item in results:
+                    table_data.append([item["No."], item["Your Answer"], item["Correct Answer"], item["Result"]])
+
+                table = Table(table_data, hAlign="LEFT", colWidths=[40, 150, 150, 100])
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ]))
+
+                elements.append(table)
+                doc.build(elements)
+
+                st.success(f"Total Score: {score} / {total}")
+                st.download_button("📄 Download Quiz Report (PDF)", data=buffer.getvalue(), file_name="audio_quiz_report.pdf", mime="application/pdf")
