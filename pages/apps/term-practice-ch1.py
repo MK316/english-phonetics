@@ -151,10 +151,10 @@ with tab2:
 
 
 # ---------------- Tab 3 ----------------
+# ---------------- Tab 3 ----------------
 with tab3:
     st.subheader("🧪 Audio Quiz: One-by-One Mode")
 
-    # Initialize session state
     if "quiz_user" not in st.session_state:
         st.session_state.quiz_user = ""
     if "quiz_started" not in st.session_state:
@@ -165,6 +165,8 @@ with tab3:
         st.session_state.quiz_order = []
     if "quiz_answers" not in st.session_state:
         st.session_state.quiz_answers = []
+    if "last_displayed_idx" not in st.session_state:
+        st.session_state.last_displayed_idx = -1  # Used to detect change
 
     name_col, start_col = st.columns([2, 1])
     with name_col:
@@ -186,16 +188,25 @@ with tab3:
         total = len(st.session_state.quiz_order)
         row = df.loc[st.session_state.quiz_order[idx]]
 
+        # Reset input if new question
+        if st.session_state.last_displayed_idx != idx:
+            st.session_state.quiz_answers[idx] = ""
+            st.session_state.last_displayed_idx = idx
+
         st.info(f"Question {idx + 1} of {total}")
         st.audio(tts_bytes(row["Description"]), format="audio/mp3")
-        st.write(answer_prompt(row))
-        st.session_state.quiz_answers[idx] = st.text_input("Your answer:", value=st.session_state.quiz_answers[idx])
 
-        col1, col2, col3 = st.columns([1, 1, 1])
+        # Show prompt with word count
+        word_hint = f" ({row['Word count']} words)"
+        st.write(f"Your answer {idx + 1}{word_hint}:")
+        st.session_state.quiz_answers[idx] = st.text_input("Type your answer here:", value=st.session_state.quiz_answers[idx])
+
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("⏮️ Restart"):
                 st.session_state.quiz_started = False
                 st.rerun()
+
         with col2:
             if st.button("➡️ Next"):
                 if idx < total - 1:
@@ -223,13 +234,6 @@ with tab3:
         with col3:
             if st.button("⏹️ Force quit and generate report"):
                 st.session_state.quiz_started = False
-
-                from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-                from reportlab.lib.pagesizes import A4
-                from reportlab.lib.styles import getSampleStyleSheet
-                from reportlab.lib import colors
-                from io import BytesIO
-
                 total = len(st.session_state.quiz_order)
                 results = []
                 score = 0
@@ -238,11 +242,9 @@ with tab3:
                     row = df.loc[idx]
                     correct = " ".join(str(row["Term"]).strip().lower().split())
                     guess = " ".join(str(st.session_state.quiz_answers[i]).strip().lower().split())
-
                     is_correct = guess == correct
                     if is_correct:
                         score += 1
-
                     results.append({
                         "No.": i + 1,
                         "Your Answer": st.session_state.quiz_answers[i] or "—",
@@ -251,6 +253,12 @@ with tab3:
                     })
 
                 # PDF generation
+                from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.lib.pagesizes import A4
+                from reportlab.lib import colors
+                from io import BytesIO
+
                 buffer = BytesIO()
                 doc = SimpleDocTemplate(buffer, pagesize=A4)
                 styles = getSampleStyleSheet()
@@ -261,20 +269,19 @@ with tab3:
                 elements.append(Paragraph(f"Total Score: {score} / {total}", styles["Heading2"]))
                 elements.append(Spacer(1, 12))
 
-                # Table
                 table_data = [["No.", "Your Answer", "Correct Answer", "Result"]]
                 for item in results:
-                    table_data.append([item["No."], item["Your Answer"], item["Correct Answer"], item["Result"]])
+                    correct_answer = Paragraph(item["Correct Answer"].replace(" or ", "<br/>or "), styles["Normal"])
+                    table_data.append([item["No."], item["Your Answer"], correct_answer, item["Result"]])
 
-                table = Table(table_data, hAlign="LEFT", colWidths=[40, 150, 150, 100])
+                table = Table(table_data, hAlign="LEFT", colWidths=[40, 150, 200, 100])
                 table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # ❗ White background for data cells
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # White background for rows
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ]))
 
@@ -282,5 +289,4 @@ with tab3:
                 doc.build(elements)
 
                 st.success(f"Total Score: {score} / {total}")
-                st.download_button("📄 Download Quiz Report (PDF)", data=buffer.getvalue(),
-                                   file_name="audio_quiz_report.pdf", mime="application/pdf")
+                st.download_button("📄 Download Quiz Report (PDF)", data=buffer.getvalue(), file_name="audio_quiz_report.pdf", mime="application/pdf")
