@@ -24,17 +24,10 @@ if "term_list" not in st.session_state:
 # Tab1: Term list display with filters
 tab1, tab2, tab3 = st.tabs(["Term List", "Practice Mode", "Quiz Mode"])
 
-with tab1:
-    st.write("This is the Term List tab")
 
-with tab2:
-    st.write("This is the Practice Mode tab")
-
-with tab3:
-    st.write("This is the Quiz Mode tab")
 
 # Tab2: Random term practice
-with st.tab("Random Practice"):
+with tab1:
     st.subheader("🎲 Practice Random Term")
 
     def pick_random_term():
@@ -55,7 +48,7 @@ with st.tab("Random Practice"):
             st.markdown(f"**Meaning:** {row['Description']}")
 
 # Tab3: Audio quiz
-with st.tab("Audio Quiz"):
+with tab2:
     st.subheader("🔊 Guess the Term from Description")
 
     def get_random_term():
