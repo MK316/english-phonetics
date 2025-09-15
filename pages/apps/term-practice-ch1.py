@@ -154,6 +154,7 @@ with tab2:
 with tab3:
     st.subheader("🧪 Audio Quiz: One-by-One Mode")
 
+    # Initialize session state
     if "quiz_user" not in st.session_state:
         st.session_state.quiz_user = ""
     if "quiz_started" not in st.session_state:
@@ -185,7 +186,7 @@ with tab3:
         total = len(st.session_state.quiz_order)
         row = df.loc[st.session_state.quiz_order[idx]]
 
-        st.info(f"Question {idx+1} of {total}")
+        st.info(f"Question {idx + 1} of {total}")
         st.audio(tts_bytes(row["Description"]), format="audio/mp3")
         st.write(answer_prompt(row))
         st.session_state.quiz_answers[idx] = st.text_input("Your answer:", value=st.session_state.quiz_answers[idx])
@@ -211,9 +212,9 @@ with tab3:
                         guess = " ".join(str(st.session_state.quiz_answers[i]).strip().lower().split())
                         if guess == correct:
                             score += 1
-                            st.success(f"{i+1}. Correct — {row['Term']}")
+                            st.success(f"{i + 1}. Correct — {row['Term']}")
                         else:
-                            st.error(f"{i+1}. Incorrect. ✅ Correct: {row['Term']}, ❌ Your answer: {st.session_state.quiz_answers[i] or '—'}")
+                            st.error(f"{i + 1}. Incorrect. ✅ Correct: {row['Term']}, ❌ Your answer: {st.session_state.quiz_answers[i] or '—'}")
 
                     st.success(f"Total Score: {score} / {total}")
                     if score == total:
@@ -221,10 +222,14 @@ with tab3:
 
         with col3:
             if st.button("⏹️ Force quit and generate report"):
-                # Stop quiz immediately
                 st.session_state.quiz_started = False
 
-                # Process all answers (mark unanswered as incorrect)
+                from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+                from reportlab.lib.pagesizes import A4
+                from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.lib import colors
+                from io import BytesIO
+
                 total = len(st.session_state.quiz_order)
                 results = []
                 score = 0
@@ -245,13 +250,7 @@ with tab3:
                         "Result": "✅ Correct" if is_correct else "❌ Incorrect"
                     })
 
-                # Generate PDF report
-                from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-                from reportlab.lib.styles import getSampleStyleSheet
-                from reportlab.lib.pagesizes import A4
-                from reportlab.lib import colors
-                from io import BytesIO
-
+                # PDF generation
                 buffer = BytesIO()
                 doc = SimpleDocTemplate(buffer, pagesize=A4)
                 styles = getSampleStyleSheet()
@@ -262,6 +261,7 @@ with tab3:
                 elements.append(Paragraph(f"Total Score: {score} / {total}", styles["Heading2"]))
                 elements.append(Spacer(1, 12))
 
+                # Table
                 table_data = [["No.", "Your Answer", "Correct Answer", "Result"]]
                 for item in results:
                     table_data.append([item["No."], item["Your Answer"], item["Correct Answer"], item["Result"]])
@@ -273,7 +273,8 @@ with tab3:
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # ❗ White background for data cells
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ]))
 
@@ -281,4 +282,5 @@ with tab3:
                 doc.build(elements)
 
                 st.success(f"Total Score: {score} / {total}")
-                st.download_button("📄 Download Quiz Report (PDF)", data=buffer.getvalue(), file_name="audio_quiz_report.pdf", mime="application/pdf")
+                st.download_button("📄 Download Quiz Report (PDF)", data=buffer.getvalue(),
+                                   file_name="audio_quiz_report.pdf", mime="application/pdf")
