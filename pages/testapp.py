@@ -34,7 +34,7 @@ apps = [
 for app in apps:
     st.markdown(
         f"""
-        <div style="margin-bottom: 20px; padding: 10px; border-radius: 10px; background-color: #ff9933;">
+        <div style="margin-bottom: 20px; padding: 10px; border-radius: 10px; background-color: #e5ffcc;">
             <h4 style="margin-bottom: 5px;">{app['name']}</h4>
             <p style="margin-top: 0; margin-bottom: 10px;">{app['description']}</p>
             <a href="{app['url']}" target="_blank">
