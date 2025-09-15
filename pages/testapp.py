@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="My App Collection", layout="centered")
 
-st.title("📚 Welcome to Jihyeon Teacher’s App Page")
+st.title("📚 Chapter 1 Applications")
 st.write("Click a button below to open the app in a new tab. Each app is designed for English education with interactive features.")
 
 # Define your apps here
@@ -34,13 +34,13 @@ apps = [
 for app in apps:
     st.markdown(
         f"""
-        <div style="margin-bottom: 20px; padding: 10px; border-radius: 10px; background-color: #f1f3f6;">
+        <div style="margin-bottom: 20px; padding: 10px; border-radius: 10px; background-color: #ff9933;">
             <h4 style="margin-bottom: 5px;">{app['name']}</h4>
             <p style="margin-top: 0; margin-bottom: 10px;">{app['description']}</p>
             <a href="{app['url']}" target="_blank">
                 <button style="background-color: #4CAF50; color: white; padding: 8px 16px;
                                border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-                    🚀 Open App
+                    🍰 Open App
                 </button>
             </a>
         </div>
