@@ -127,16 +127,19 @@ with tab2:
             )
 
         if st.button("✅ Check Answers"):
+            score = 0  # ✅ Initialize score
+        
             for i, row in st.session_state.practice_set.iterrows():
                 correct = row["Term"].strip().lower()
                 user_answer = st.session_state.audio_answers[i].strip().lower()
+        
                 if user_answer == correct:
                     st.success(f"Item {i+1}: Correct!")
+                    score += 1
                 else:
                     st.error(f"Item {i+1}: Incorrect. Correct answer: {correct}")
-
-        if score == len(st.session_state.audio_idx):
-                st.balloons()
+        
+            st.info(f"Your Score: {score} / {len(st.session_state.practice_set)}")  # ✅ Show final score
 
 # ---------------- Tab 3 ----------------
 with tab3:
