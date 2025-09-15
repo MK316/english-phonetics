@@ -221,13 +221,13 @@ with tab3:
                     score = 0
                     for i, idx in enumerate(st.session_state.quiz_order):
                         row = df.loc[idx]
-                        correct = " ".join(str(row["Term"]).strip().lower().split())
+                        term_variants = [x.strip().lower() for x in str(row["Term"]).split("or")]
                         guess = " ".join(str(st.session_state.quiz_answers[i]).strip().lower().split())
-                        if guess == correct:
+                        if guess in term_variants:
                             score += 1
-                            st.success(f"{i+1}. Correct — {row['Term']}")
+                            st.success(f"{i+1}. Correct — {term_variants[0]}")
                         else:
-                            st.error(f"{i+1}. Incorrect. ✅ Correct: {row['Term']}, ❌ Your answer: {st.session_state.quiz_answers[i] or '—'}")
+                            st.error(f"{i+1}. Incorrect. ✅ Correct: {term_variants[0]}, ❌ Your answer: {guess or '—'}")
 
                     st.success(f"Total Score: {score} / {total}")
                     if score == total:
@@ -244,15 +244,16 @@ with tab3:
 
                 for i, idx in enumerate(st.session_state.quiz_order):
                     row = df.loc[idx]
-                    correct = " ".join(str(row["Term"]).strip().lower().split())
+                    term_variants = [x.strip().lower() for x in str(row["Term"]).split("or")]
+                    first_term = term_variants[0]  # For report display
                     guess = " ".join(str(st.session_state.quiz_answers[i]).strip().lower().split())
-                    is_correct = guess == correct
+                    is_correct = guess in term_variants
                     if is_correct:
                         score += 1
                     results.append({
                         "No.": i + 1,
                         "Your Answer": st.session_state.quiz_answers[i] or "—",
-                        "Correct Answer": row["Term"],
+                        "Correct Answer": first_term,
                         "Result": "✅ Correct" if is_correct else "❌ Incorrect"
                     })
 
@@ -281,7 +282,7 @@ with tab3:
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # <- white background for body
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ]))
 
