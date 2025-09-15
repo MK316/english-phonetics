@@ -22,14 +22,16 @@ if "term_list" not in st.session_state:
     st.session_state.term_list = []
 
 # Tab1: Term list display with filters
-with st.tab("Term List"):
-    st.subheader("📋 Browse Terms")
-    part_filter = st.selectbox("Filter by Part:", ["All"] + sorted(df["Part"].dropna().unique()))
-    if part_filter != "All":
-        filtered_df = df[df["Part"] == part_filter]
-    else:
-        filtered_df = df
-    st.dataframe(filtered_df[["ID", "Term", "Hint"]].reset_index(drop=True), use_container_width=True)
+tab1, tab2, tab3 = st.tabs(["Term List", "Practice Mode", "Quiz Mode"])
+
+with tab1:
+    st.write("This is the Term List tab")
+
+with tab2:
+    st.write("This is the Practice Mode tab")
+
+with tab3:
+    st.write("This is the Quiz Mode tab")
 
 # Tab2: Random term practice
 with st.tab("Random Practice"):
