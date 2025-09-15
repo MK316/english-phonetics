@@ -104,41 +104,38 @@ with tab1:
 
 # ---------------- Tab 2 ----------------
 with tab2:
-    st.subheader("🔊 Practice Terms with Audio (List Mode)")
-    num_items_audio = st.number_input("How many audio questions?", min_value=1, max_value=len(df), value=3)
+    st.subheader("🔊 Audio Practice (Guess the Term from Description)")
 
-    if "audio_idx" not in st.session_state:
-        st.session_state.audio_idx = []
-    if "audio_answers" not in st.session_state:
-        st.session_state.audio_answers = []
+    num_items = st.slider("How many items would you like to practice?", 1, 10, 3)
 
-    if st.button("🔁 Generate Audio Practice"):
-        sample = df.sample(num_items_audio)
-        st.session_state.audio_idx = sample.index.tolist()
-        st.session_state.audio_answers = [""] * len(st.session_state.audio_idx)
-        st.rerun()
+    if st.button("🎧 Generate Practice Set"):
+        st.session_state.practice_set = df.sample(num_items).reset_index(drop=True)
+        st.session_state.audio_answers = [""] * num_items
 
-    if st.session_state.audio_idx:
-        for i, idx in enumerate(st.session_state.audio_idx):
-            row = df.loc[idx]
-            st.markdown(f"**{i+1}. Listen and type the correct term**")
-            st.audio(tts_bytes(row["Description"]), format="audio/mp3")
-            st.write(answer_prompt(row))
-            st.session_state.audio_answers[i] = st.text_input(f"Your answer {i+1}", value=st.session_state.audio_answers[i])
+    if st.session_state.practice_set is not None:
+        for i, row in st.session_state.practice_set.iterrows():
+            text = row["Description"]
+            tts = gTTS(text)
+            mp3_fp = BytesIO()
+            tts.write_to_fp(mp3_fp)
 
-        if st.button("✅ Check Answers (Audio)"):
-            score = 0
-            for i, idx in enumerate(st.session_state.audio_idx):
-                row = df.loc[idx]
-                gold = " ".join(str(row["Term"]).strip().lower().split())
-                guess = " ".join(str(st.session_state.audio_answers[i]).strip().lower().split())
-                if guess == gold:
-                    score += 1
-                    st.success(f"{i+1}. Correct!")
+            st.audio(mp3_fp.getvalue(), format="audio/mp3")
+            st.session_state.audio_answers[i] = st.text_input(
+                f"Your answer {i+1}",
+                value=st.session_state.audio_answers[i],
+                key=f"audio_input_{i}"  # ✅ Unique key
+            )
+
+        if st.button("✅ Check Answers"):
+            for i, row in st.session_state.practice_set.iterrows():
+                correct = row["Term"].strip().lower()
+                user_answer = st.session_state.audio_answers[i].strip().lower()
+                if user_answer == correct:
+                    st.success(f"Item {i+1}: Correct!")
                 else:
-                    st.error(f"{i+1}. Incorrect. ✅ Correct: **{row['Term']}**")
-            st.success(f"Your score: {score} / {len(st.session_state.audio_idx)}")
-            if score == len(st.session_state.audio_idx):
+                    st.error(f"Item {i+1}: Incorrect. Correct answer: {correct}")
+
+        if score == len(st.session_state.audio_idx):
                 st.balloons()
 
 # ---------------- Tab 3 ----------------
