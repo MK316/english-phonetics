@@ -112,35 +112,43 @@ with tab2:
         st.session_state.practice_set = df.sample(num_items).reset_index(drop=True)
         st.session_state.audio_answers = [""] * num_items
 
-    if st.session_state.practice_set is not None:
+    if "practice_set" in st.session_state and st.session_state.practice_set is not None:
         for i, row in st.session_state.practice_set.iterrows():
+            # Generate audio from description
             text = row["Description"]
             tts = gTTS(text)
             mp3_fp = BytesIO()
             tts.write_to_fp(mp3_fp)
 
+            # Play audio
             st.audio(mp3_fp.getvalue(), format="audio/mp3")
+
+            # Word count hint
+            word_count = row["Word count"]
+            label = f"Your answer {i+1} ({word_count} word{'s' if word_count > 1 else ''})"
+
+            # Input with unique key
             st.session_state.audio_answers[i] = st.text_input(
-                f"Your answer {i+1}", 
-                value=st.session_state.audio_answers[i]
+                label,
+                value=st.session_state.audio_answers[i],
+                key=f"answer_input_{i}"
             )
 
-            )
-
+        # Check answers
         if st.button("✅ Check Answers"):
-            score = 0  # ✅ Initialize score
-        
+            score = 0
             for i, row in st.session_state.practice_set.iterrows():
                 correct = row["Term"].strip().lower()
                 user_answer = st.session_state.audio_answers[i].strip().lower()
-        
+
                 if user_answer == correct:
                     st.success(f"Item {i+1}: Correct!")
                     score += 1
                 else:
                     st.error(f"Item {i+1}: Incorrect. Correct answer: {correct}")
-        
-            st.info(f"Your Score: {score} / {len(st.session_state.practice_set)}")  # ✅ Show final score
+
+            st.info(f"🎯 Your Score: {score} / {len(st.session_state.practice_set)}")
+
 
 # ---------------- Tab 3 ----------------
 with tab3:
