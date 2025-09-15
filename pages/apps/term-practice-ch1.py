@@ -155,21 +155,20 @@ with tab2:
 with tab3:
     st.subheader("🧪 Audio Quiz: One-by-One Mode")
 
-    if "quiz_user" not in st.session_state:
-        st.session_state.quiz_user = ""
-    if "quiz_started" not in st.session_state:
-        st.session_state.quiz_started = False
-    if "quiz_idx" not in st.session_state:
-        st.session_state.quiz_idx = 0
-    if "quiz_order" not in st.session_state:
-        st.session_state.quiz_order = []
-    if "quiz_answers" not in st.session_state:
-        st.session_state.quiz_answers = []
-    if "quiz_start_time" not in st.session_state:
-        st.session_state.quiz_start_time = None
-    if "quiz_end_time" not in st.session_state:
-        st.session_state.quiz_end_time = None
+    # Session state initialization
+    for var, default in {
+        "quiz_user": "",
+        "quiz_started": False,
+        "quiz_idx": 0,
+        "quiz_order": [],
+        "quiz_answers": [],
+        "quiz_start_time": None,
+        "quiz_end_time": None,
+    }.items():
+        if var not in st.session_state:
+            st.session_state[var] = default
 
+    # Name and Start
     name_col, start_col = st.columns([2, 1])
     with name_col:
         user = st.text_input("Enter your name", value=st.session_state.quiz_user)
@@ -195,12 +194,12 @@ with tab3:
         st.audio(tts_bytes(row["Description"]), format="audio/mp3")
         st.write(answer_prompt(row))
 
-        # Show input field with stable key per question
-        answer_key = f"quiz_answer_{idx}"
-        current_answer = st.text_input("Your answer:", value=st.session_state.quiz_answers[idx], key=answer_key)
-        st.session_state.quiz_answers[idx] = current_answer
+        # Show input with reset key
+        answer_key = f"quiz_answer_{idx}_{datetime.now().timestamp()}"
+        user_answer = st.text_input("Your answer:", key=answer_key)
+        st.session_state.quiz_answers[idx] = user_answer
 
-        col1, col2, col3 = st.columns([1, 1, 1])
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("⏮️ Restart"):
                 st.session_state.quiz_started = False
@@ -209,22 +208,19 @@ with tab3:
         with col2:
             if st.button("➡️ Next"):
                 if idx < total - 1:
-                    # Clear the previous input manually
-                    st.session_state.quiz_answers[idx + 1] = ""
                     st.session_state.quiz_idx += 1
                     st.rerun()
                 else:
                     st.session_state.quiz_end_time = datetime.now()
                     st.session_state.quiz_started = False
-                    st.success("✅ Quiz completed! Check your answers below.")
+                    st.success("✅ Quiz completed!")
 
+                    # Score calculation
                     score = 0
                     for i, idx in enumerate(st.session_state.quiz_order):
                         row = df.loc[idx]
-                        correct_answers = [ans.strip() for ans in re.split(r'\s+or\s+', row["Term"])]
-
+                        correct_answers = [ans.strip().lower() for ans in row["Term"].split(",")]
                         guess = st.session_state.quiz_answers[i].strip().lower()
-
                         if guess in correct_answers:
                             score += 1
                             st.success(f"{i+1}. Correct — {correct_answers[0]}")
@@ -240,28 +236,24 @@ with tab3:
                 st.session_state.quiz_end_time = datetime.now()
                 st.session_state.quiz_started = False
 
-                # Process answers
-                total = len(st.session_state.quiz_order)
+                # Score report data
                 results = []
                 score = 0
-
                 for i, idx in enumerate(st.session_state.quiz_order):
                     row = df.loc[idx]
-                    correct_answers = [ans.strip().lower() for ans in row["Term"].split("or")]
+                    correct_answers = [ans.strip().lower() for ans in row["Term"].split(",")]
                     guess = st.session_state.quiz_answers[i].strip().lower()
-
                     is_correct = guess in correct_answers
                     if is_correct:
                         score += 1
-
                     results.append({
                         "No.": i + 1,
                         "Your Answer": st.session_state.quiz_answers[i] or "—",
-                        "Correct Answer": correct_answers[0],  # Only the first one for report
+                        "Correct Answer": correct_answers[0],
                         "Result": "✅ Correct" if is_correct else "❌ Incorrect"
                     })
 
-                # Generate PDF report
+                # Generate PDF
                 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
                 from reportlab.lib.styles import getSampleStyleSheet
                 from reportlab.lib.pagesizes import A4
@@ -295,7 +287,6 @@ with tab3:
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # white for answer rows
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ]))
 
