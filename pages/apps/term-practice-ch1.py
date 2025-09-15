@@ -5,7 +5,7 @@ from gtts import gTTS
 from io import BytesIO
 
 # Load data
-sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQb9b-c17OdCBWl63_Af43H2emPXhUJe0XoV3JDwURBh1VpFKEb7ItURD9vn8C5oZ51r0vXu5TDGMEX/pub?output=csv"
+sheet_url = "https://raw.githubusercontent.com/MK316/classmaterial/main/Phonetics/ch01_glossary.csv"
 df = pd.read_csv(sheet_url)
 
 # App title
