@@ -121,9 +121,10 @@ with tab2:
 
             st.audio(mp3_fp.getvalue(), format="audio/mp3")
             st.session_state.audio_answers[i] = st.text_input(
-                f"Your answer {i+1}",
-                value=st.session_state.audio_answers[i],
-                key=f"audio_input_{i}"  # ✅ Unique key
+                f"Your answer {i+1}", 
+                value=st.session_state.audio_answers[i]
+            )
+
             )
 
         if st.button("✅ Check Answers"):
