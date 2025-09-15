@@ -8,6 +8,9 @@ from io import BytesIO
 sheet_url = "https://raw.githubusercontent.com/MK316/classmaterial/main/Phonetics/ch01_glossary.csv"
 df = pd.read_csv(sheet_url)
 
+# Optional: normalize column names
+df.columns = df.columns.str.strip().str.lower()
+
 # App title
 st.title("🧠 Term Practice App")
 
@@ -18,24 +21,20 @@ if "show_meaning" not in st.session_state:
     st.session_state.show_meaning = False
 if "selected_term" not in st.session_state:
     st.session_state.selected_term = None
-if "quiz_index" not in st.session_state:
-    st.session_state.quiz_index = 0
 if "term_list" not in st.session_state:
-    st.session_state.term_list = df.sample(frac=1).reset_index(drop=True)  # shuffled list for quiz
-if "score" not in st.session_state:
-    st.session_state.score = 0
+    st.session_state.term_list = []
 
-# Create tabs
-tab1, tab2, tab3 = st.tabs(["📘 Term List", "🎲 Random Practice", "📝 Quiz Mode"])
+# Tabs: Term List, Practice, Quiz
+tab1, tab2, tab3 = st.tabs(["Term List", "Practice Mode", "Quiz Mode"])
 
-# Tab 1: Show the full term list
+# Tab 1: Term List
 with tab1:
     st.subheader("📘 Full Glossary")
-    st.dataframe(df)
+    st.dataframe(df[["term", "description"]], use_container_width=True)
 
-# Tab 2: Random Practice
+# Tab 2: Practice Mode
 with tab2:
-    st.subheader("🎲 Practice a Random Term")
+    st.subheader("🎲 Practice Random Term")
 
     def pick_random_term():
         st.session_state.selected_row = df.sample(1).iloc[0]
@@ -45,34 +44,27 @@ with tab2:
 
     if st.session_state.selected_row is not None:
         row = st.session_state.selected_row
-        st.markdown(f"### Hint: {row['Hint']}")
+        st.markdown(f"### Description: {row['description']}")
 
-        if st.button("Show Meaning"):
+        if st.button("Show Term"):
             st.session_state.show_meaning = True
 
         if st.session_state.show_meaning:
-            st.markdown(f"**Term:** {row['Term']}")
-            st.markdown(f"**Meaning:** {row['Description']}")
+            st.markdown(f"**✅ Term:** {row['term']}")
 
-# Tab 3: Audio Description → Term Guess (Quiz Mode)
+# Tab 3: Quiz Mode
 with tab3:
-    st.subheader("🔊 Audio Quiz: Guess the Term")
+    st.subheader("🔊 Guess the Term from Description")
 
-    def get_next_quiz_term():
-        st.session_state.selected_term = st.session_state.term_list.iloc[st.session_state.quiz_index]
+    def get_random_term():
+        row = df.sample(1).iloc[0]
+        st.session_state.selected_term = row
 
-    if st.button("🔁 Next"):
-        if st.session_state.quiz_index < len(st.session_state.term_list):
-            get_next_quiz_term()
-            st.session_state.quiz_index += 1
-        else:
-            st.warning("🎉 You've completed the quiz!")
-            st.session_state.quiz_index = 0
-            st.session_state.score = 0
-            st.session_state.term_list = df.sample(frac=1).reset_index(drop=True)
+    if st.button("🔁 New Audio"):
+        get_random_term()
 
     if st.session_state.selected_term is not None:
-        text = st.session_state.selected_term["Description"]
+        text = st.session_state.selected_term["description"]
         tts = gTTS(text)
         mp3_fp = BytesIO()
         tts.write_to_fp(mp3_fp)
@@ -80,11 +72,8 @@ with tab3:
 
         answer = st.text_input("Your Answer:")
         if answer:
-            correct = st.session_state.selected_term["Term"].strip().lower()
+            correct = st.session_state.selected_term["term"].strip().lower()
             if answer.strip().lower() == correct:
                 st.success("✅ Correct!")
-                st.session_state.score += 1
             else:
-                st.error(f"❌ Incorrect. The correct answer was: {correct}")
-
-    st.markdown(f"**Score:** {st.session_state.score}")
+                st.error(f"❌ Incorrect. The correct answer is: **{correct}**")
