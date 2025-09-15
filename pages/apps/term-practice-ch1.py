@@ -195,7 +195,8 @@ with tab3:
         st.write(answer_prompt(row))
 
         # Show input with reset key
-        answer_key = f"quiz_answer_{idx}_{datetime.now().timestamp()}"
+        answer_key = f"quiz_answer_{idx}"
+
         user_answer = st.text_input("Your answer:", key=answer_key)
         st.session_state.quiz_answers[idx] = user_answer
 
