@@ -183,7 +183,7 @@ with tab3:
                 st.session_state.quiz_answers = [""] * len(st.session_state.quiz_order)
                 st.session_state.quiz_idx = 0
                 st.session_state.quiz_started = True
-                st.session_state.quiz_start_time = datetime.datetime.now()
+                st.session_state.quiz_start_time = datetime.now()
                 st.rerun()
 
     if st.session_state.quiz_started:
@@ -214,7 +214,7 @@ with tab3:
                     st.session_state.quiz_idx += 1
                     st.rerun()
                 else:
-                    st.session_state.quiz_end_time = datetime.datetime.now()
+                    st.session_state.quiz_end_time = datetime.now()
                     st.session_state.quiz_started = False
                     st.success("✅ Quiz completed! Check your answers below.")
 
@@ -236,7 +236,7 @@ with tab3:
 
         with col3:
             if st.button("⏹️ Force quit and generate report"):
-                st.session_state.quiz_end_time = datetime.datetime.now()
+                st.session_state.quiz_end_time = datetime.now()
                 st.session_state.quiz_started = False
 
                 # Process answers
