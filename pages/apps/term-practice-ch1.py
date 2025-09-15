@@ -155,6 +155,14 @@ with tab2:
 with tab3:
     st.subheader("🧪 Audio Quiz: One-by-One Mode")
 
+    import datetime
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from io import BytesIO
+
+    # Session state setup
     if "quiz_user" not in st.session_state:
         st.session_state.quiz_user = ""
     if "quiz_started" not in st.session_state:
@@ -165,8 +173,8 @@ with tab3:
         st.session_state.quiz_order = []
     if "quiz_answers" not in st.session_state:
         st.session_state.quiz_answers = []
-    if "last_displayed_idx" not in st.session_state:
-        st.session_state.last_displayed_idx = -1  # Used to detect change
+    if "quiz_start_time" not in st.session_state:
+        st.session_state.quiz_start_time = None
 
     name_col, start_col = st.columns([2, 1])
     with name_col:
@@ -181,6 +189,7 @@ with tab3:
                 st.session_state.quiz_answers = [""] * len(st.session_state.quiz_order)
                 st.session_state.quiz_idx = 0
                 st.session_state.quiz_started = True
+                st.session_state.quiz_start_time = datetime.datetime.now()
                 st.rerun()
 
     if st.session_state.quiz_started:
@@ -188,20 +197,13 @@ with tab3:
         total = len(st.session_state.quiz_order)
         row = df.loc[st.session_state.quiz_order[idx]]
 
-        # Reset input if new question
-        if st.session_state.last_displayed_idx != idx:
-            st.session_state.quiz_answers[idx] = ""
-            st.session_state.last_displayed_idx = idx
-
-        st.info(f"Question {idx + 1} of {total}")
+        st.info(f"Question {idx+1} of {total}")
         st.audio(tts_bytes(row["Description"]), format="audio/mp3")
+        st.write(answer_prompt(row))
+        key = f"quiz_answer_{idx}_{datetime.datetime.now().timestamp()}"
+        st.session_state.quiz_answers[idx] = st.text_input("Your answer:", value="", key=key)
 
-        # Show prompt with word count
-        word_hint = f" ({row['Word count']} words)"
-        st.write(f"Your answer {idx + 1}{word_hint}:")
-        st.session_state.quiz_answers[idx] = st.text_input("Type your answer here:", value=st.session_state.quiz_answers[idx])
-
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
             if st.button("⏮️ Restart"):
                 st.session_state.quiz_started = False
@@ -223,9 +225,9 @@ with tab3:
                         guess = " ".join(str(st.session_state.quiz_answers[i]).strip().lower().split())
                         if guess == correct:
                             score += 1
-                            st.success(f"{i + 1}. Correct — {row['Term']}")
+                            st.success(f"{i+1}. Correct — {row['Term']}")
                         else:
-                            st.error(f"{i + 1}. Incorrect. ✅ Correct: {row['Term']}, ❌ Your answer: {st.session_state.quiz_answers[i] or '—'}")
+                            st.error(f"{i+1}. Incorrect. ✅ Correct: {row['Term']}, ❌ Your answer: {st.session_state.quiz_answers[i] or '—'}")
 
                     st.success(f"Total Score: {score} / {total}")
                     if score == total:
@@ -234,9 +236,11 @@ with tab3:
         with col3:
             if st.button("⏹️ Force quit and generate report"):
                 st.session_state.quiz_started = False
+                end_time = datetime.datetime.now()
+                start_time = st.session_state.quiz_start_time or end_time
                 total = len(st.session_state.quiz_order)
-                results = []
                 score = 0
+                results = []
 
                 for i, idx in enumerate(st.session_state.quiz_order):
                     row = df.loc[idx]
@@ -253,35 +257,31 @@ with tab3:
                     })
 
                 # PDF generation
-                from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-                from reportlab.lib.styles import getSampleStyleSheet
-                from reportlab.lib.pagesizes import A4
-                from reportlab.lib import colors
-                from io import BytesIO
-
                 buffer = BytesIO()
                 doc = SimpleDocTemplate(buffer, pagesize=A4)
                 styles = getSampleStyleSheet()
                 elements = []
 
                 elements.append(Paragraph(f"Audio Quiz Report for {st.session_state.quiz_user}", styles["Title"]))
-                elements.append(Spacer(1, 12))
+                elements.append(Spacer(1, 8))
+                elements.append(Paragraph(f"Start Time: {start_time.strftime('%Y-%m-%d %H:%M:%S')}", styles["Normal"]))
+                elements.append(Paragraph(f"End Time: {end_time.strftime('%Y-%m-%d %H:%M:%S')}", styles["Normal"]))
+                elements.append(Spacer(1, 8))
                 elements.append(Paragraph(f"Total Score: {score} / {total}", styles["Heading2"]))
                 elements.append(Spacer(1, 12))
 
                 table_data = [["No.", "Your Answer", "Correct Answer", "Result"]]
                 for item in results:
-                    correct_answer = Paragraph(item["Correct Answer"].replace(" or ", "<br/>or "), styles["Normal"])
-                    table_data.append([item["No."], item["Your Answer"], correct_answer, item["Result"]])
+                    table_data.append([item["No."], item["Your Answer"], item["Correct Answer"], item["Result"]])
 
-                table = Table(table_data, hAlign="LEFT", colWidths=[40, 150, 200, 100])
+                table = Table(table_data, hAlign="LEFT", colWidths=[40, 150, 150, 100])
                 table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                     ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # White background for rows
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.white),  # <- white background for body
                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ]))
 
@@ -289,4 +289,9 @@ with tab3:
                 doc.build(elements)
 
                 st.success(f"Total Score: {score} / {total}")
-                st.download_button("📄 Download Quiz Report (PDF)", data=buffer.getvalue(), file_name="audio_quiz_report.pdf", mime="application/pdf")
+                st.download_button(
+                    "📄 Download Quiz Report (PDF)",
+                    data=buffer.getvalue(),
+                    file_name="audio_quiz_report.pdf",
+                    mime="application/pdf"
+                )
