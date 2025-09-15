@@ -221,7 +221,8 @@ with tab3:
                     score = 0
                     for i, idx in enumerate(st.session_state.quiz_order):
                         row = df.loc[idx]
-                        correct_answers = [ans.strip().lower() for ans in row["Term"].split("or")]
+                        correct_answers = [ans.strip() for ans in re.split(r'\s+or\s+', row["Term"])]
+
                         guess = st.session_state.quiz_answers[i].strip().lower()
 
                         if guess in correct_answers:
