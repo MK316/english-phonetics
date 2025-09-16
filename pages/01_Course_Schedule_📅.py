@@ -11,7 +11,7 @@ tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "TBA"])
 with tab1:
 
     # Table header
-    table_header = "| Date | Chapter | Keywords | Assignments & Activities | Remark |\n"
+    table_header = "| Date | Chapter | Keywords | Assignments & Activities | To do |\n"
     table_divider = "|------|---------|----------|---------------------------|--------|\n"
     
     # Start on Tuesday, September 2, 2025
