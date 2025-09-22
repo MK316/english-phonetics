@@ -1,6 +1,13 @@
 import re
 import unicodedata
 import streamlit as st
+from datetime import datetime
+from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+import requests
 
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Vocal Organs Quiz", page_icon="🗣️", layout="wide")
@@ -47,6 +54,8 @@ def is_correct(num: int, user_text: str) -> bool:
 st.image(IMAGE_URL, use_container_width=True,
          caption="Refer to the numbers (1–14) on this diagram.")
 
+name = st.text_input("Enter your name:")
+
 if "answers" not in st.session_state:
     st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
 if "checked" not in st.session_state:
@@ -91,9 +100,11 @@ if submitted:
     st.session_state.checked = True
     st.rerun()
 
+# ---------------- Feedback ----------------
 if st.session_state.checked:
     correct_count = sum(1 for ok in st.session_state.results.values() if ok)
     st.success(f"Score: **{correct_count} / {TOTAL_ITEMS}**")
+
     rows = []
     for n in range(1, TOTAL_ITEMS + 1):
         user = st.session_state.answers.get(n, "")
@@ -111,3 +122,54 @@ if st.session_state.checked:
         st.session_state.checked = False
         st.session_state.results = {}
         st.rerun()
+
+    # ---------------- PDF Export ----------------
+    def generate_pdf(name, answers, results):
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        elements.append(Paragraph("<b>Vocal Organs Quiz Report</b>", styles["Title"]))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"Name: {name}", styles["Normal"]))
+        elements.append(Paragraph(f"Timestamp: {timestamp}", styles["Normal"]))
+        elements.append(Spacer(1, 12))
+
+        # Add diagram image
+        try:
+            img_data = requests.get(IMAGE_URL).content
+            img = Image(BytesIO(img_data), width=300, height=300)
+            elements.append(img)
+            elements.append(Spacer(1, 12))
+        except Exception:
+            elements.append(Paragraph("(Image could not be loaded)", styles["Normal"]))
+
+        # Add results table
+        header = ["No.", "Your Answer", "Correct Answer(s)", "Result"]
+        data = [header]
+        for n in range(1, TOTAL_ITEMS + 1):
+            user = answers.get(n, "")
+            gold_display = ", ".join(ANSWER_KEY.get(n, [])) or "(not defined)"
+            ok = results.get(n, False)
+            result_text = "Correct" if ok else "Incorrect"
+            data.append([n, user if user else "—", gold_display, result_text])
+
+        tbl = Table(data, repeatRows=1)
+        tbl.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.lightblue),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ]))
+        elements.append(tbl)
+
+        doc.build(elements)
+        buffer.seek(0)
+        return buffer
+
+    pdf_bytes = generate_pdf(name, st.session_state.answers, st.session_state.results)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    filename = f"VocalOrgans_Report_{name.replace(' ', '_')}_{timestamp}.pdf"
+    st.download_button("⬇️ Download PDF Report", data=pdf_bytes, file_name=filename, mime="application/pdf")
