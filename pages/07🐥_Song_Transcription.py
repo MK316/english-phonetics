@@ -7,14 +7,14 @@ st.markdown("Select a song from the dropdown to watch and transcribe it.")
 st.write("Submit to Padlet by midnight on 11/7 (Thursday)")
 # ---------------- Song list ----------------
 songs = {
-    "Lemon tree": "https://youtu.be/XAFS43NKFag?si=r-2uDkTIS4PJ0tV-",
-    "Top of the world": "https://youtu.be/9BgNVW4T1eo?si=KisjV1uQo3XLkzYV",
+    "Lemon tree (G1)": "https://youtu.be/XAFS43NKFag?si=r-2uDkTIS4PJ0tV-",
+    "Top of the world (G2)": "https://youtu.be/9BgNVW4T1eo?si=KisjV1uQo3XLkzYV",
     "Let it be": "https://youtu.be/QDYfEBY9NM4?si=q71fkO1Sf09ThjG1",
     "Itsy Bitsy Teenie Weenie Yellow Polka Dot Bikini": "https://youtu.be/lpv-RGZJjP0?si=6jGak4n6QbWvJYrY",
-    "You are my sunshine": "https://youtu.be/5TUzB2fBUpY?si=WNnRAo2Z-nFTkkam",
+    "You are my sunshine (G3)": "https://youtu.be/5TUzB2fBUpY?si=WNnRAo2Z-nFTkkam",
     "Yesterday once more": "https://youtu.be/pteksK4GtCE?si=liQDKZ9TGE7nVfKt",
-    "Let it go": "https://www.youtube.com/embed/HV6Rg2SKDfg?si=QmV6uScQV-UQDlta",
-    "Golden": "https://www.youtube.com/embed/66ypgOAMGpU?si=ih5gMtgnk8lBokjE"
+    "Let it go (G5)": "https://www.youtube.com/embed/HV6Rg2SKDfg?si=QmV6uScQV-UQDlta",
+    "Golden (G4)": "https://www.youtube.com/embed/66ypgOAMGpU?si=ih5gMtgnk8lBokjE"
 }
 
 # Replace with your shared Google Sheet link
