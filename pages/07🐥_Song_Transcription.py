@@ -26,7 +26,7 @@ song_choice = st.selectbox("🎶 Choose a song", ["-- Select a song --"] + list(
 if song_choice != "-- Select a song --":
     st.video(songs[song_choice], format="video/mp4", start_time=0)
 
-    st.markdown("✏️ **Instructions**: Work in your group to transcribe the lyrics of this song using IPA notation.")
+    st.markdown("✏️ **Instructions**: Notify when your group decides which one to pick (by 9/23).")
 
     # ---------------- Google Sheet Button ----------------
     st.link_button("📑 Open Group Transcription Sheet", GOOGLE_SHEET_URL)
