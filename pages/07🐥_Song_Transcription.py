@@ -14,6 +14,7 @@ songs = {
     "You are my sunshine": "https://youtu.be/5TUzB2fBUpY?si=WNnRAo2Z-nFTkkam",
     "Yesterday once more": "https://youtu.be/pteksK4GtCE?si=liQDKZ9TGE7nVfKt",
     "Let it go": "https://www.youtube.com/embed/HV6Rg2SKDfg?si=QmV6uScQV-UQDlta",
+    "Golden": "https://www.youtube.com/embed/66ypgOAMGpU?si=ih5gMtgnk8lBokjE"
 }
 
 # Replace with your shared Google Sheet link
