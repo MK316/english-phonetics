@@ -48,7 +48,7 @@ if "pdf_ready" not in st.session_state:
     st.session_state.pdf_ready = False
 
 # ---------------- UI ----------------
-st.image(IMAGE_URL, use_container_width=True, caption="Refer to the numbers (1–14) on this diagram.")
+st.image(IMAGE_URL, width=400, caption="Refer to the numbers (1–14) on this diagram.")
 name = st.text_input("✍️ Enter your name (optional):")
 
 with st.form("quiz_form"):
