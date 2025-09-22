@@ -33,7 +33,7 @@ apps = [
         "description": "IPA quiz application."
     },
     {
-        "name": "Ch1 Exercises online",
+        "name": "6. Ch1 Exercises online",
         "url":"https://fnt-ch01ex.streamlit.app/",
         "description": "Exercise practice and pdf report: A, B-C, D, E, F, K, L"
 }
