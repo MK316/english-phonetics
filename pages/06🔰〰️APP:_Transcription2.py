@@ -10,10 +10,10 @@ st.title("🔈 Transcription Practice – Audio Player")
 PRACTICE_ITEMS = [
     # single words
     "butter", "better", "apple", "father", "water",
-    "paper", "Christmas", "student", "quickly", "music",
-    # short phrases
-    "a cup of tea", "let it be", "want to go", "going to school", "sit down",
-    "black cat", "you and me", "this year", "good morning", "see you later",
+    "paper", "Christmas", "student", "quickly", "music"
+    # # short phrases
+    # "a cup of tea", "let it be", "want to go", "going to school", "sit down",
+    # "black cat", "you and me", "this year", "good morning", "see you later",
 ]
 
 # ---------------- Helper ----------------
