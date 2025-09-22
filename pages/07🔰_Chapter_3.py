@@ -7,7 +7,7 @@ from PIL import Image
 import streamlit as st
 
 # ---------------- Page setup ----------------
-st.set_page_config(page_title="Lecture Slide Player - Chapter 2", layout="wide")
+st.set_page_config(page_title="Lecture Slide Player - Chapter 3", layout="wide")
 st.markdown("#### 📗 Chapter 3: English consonants and allophonic rules")
 
 
@@ -17,7 +17,7 @@ GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
 FOLDER_PATH   = "pages/lecture/Ch03"
 
-FILENAME_PREFIX = "Ch3."
+FILENAME_PREFIX = "Ch03."
 FILENAME_EXT    = ".png"
 START_INDEX     = 1
 END_INDEX       = 47
