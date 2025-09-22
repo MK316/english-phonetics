@@ -44,7 +44,7 @@ def is_correct(num: int, user_text: str) -> bool:
 if "answers" not in st.session_state:
     st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
 if "results" not in st.session_state:
-    st.session_state.results = {}
+    st.session_state.results = None
 
 # ---------------- UI ----------------
 st.image(IMAGE_URL, use_container_width=True, caption="Refer to the numbers (1–14) on this diagram.")
@@ -68,7 +68,7 @@ if submitted:
     }
 
 # ---------------- Feedback ----------------
-if st.session_state.results:
+if st.session_state.results is not None:
     correct_count = sum(1 for ok in st.session_state.results.values() if ok)
     st.success(f"Score: **{correct_count} / {TOTAL_ITEMS}**")
 
@@ -85,53 +85,51 @@ if st.session_state.results:
         })
     st.dataframe(rows, use_container_width=True, hide_index=True)
 
-# ---------------- PDF Export ----------------
-def generate_pdf(name, answers, results):
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    styles = getSampleStyleSheet()
-    elements = []
+    # ---------------- PDF Export ----------------
+    def generate_pdf(name, answers, results):
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    elements.append(Paragraph("<b>Vocal Organs Quiz Report</b>", styles["Title"]))
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph(f"Name: {name if name else '(No name)'}", styles["Normal"]))
-    elements.append(Paragraph(f"Timestamp: {timestamp}", styles["Normal"]))
-    elements.append(Spacer(1, 12))
-
-    # Add diagram image
-    try:
-        img_data = requests.get(IMAGE_URL).content
-        elements.append(Image(BytesIO(img_data), width=300, height=300))
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        elements.append(Paragraph("<b>Vocal Organs Quiz Report</b>", styles["Title"]))
         elements.append(Spacer(1, 12))
-    except Exception:
-        elements.append(Paragraph("(Image could not be loaded)", styles["Normal"]))
+        elements.append(Paragraph(f"Name: {name if name else '(No name)'}", styles["Normal"]))
+        elements.append(Paragraph(f"Timestamp: {timestamp}", styles["Normal"]))
+        elements.append(Spacer(1, 12))
 
-    # Add results table
-    header = ["No.", "Your Answer", "Correct Answer(s)", "Result"]
-    data = [header]
-    for n in range(1, TOTAL_ITEMS + 1):
-        user = answers.get(n, "")
-        gold_display = ", ".join(ANSWER_KEY.get(n, [])) or "(not defined)"
-        ok = results.get(n, False)
-        result_text = "Correct" if ok else "Incorrect"
-        data.append([n, user if user else "—", gold_display, result_text])
+        # Add diagram image
+        try:
+            img_data = requests.get(IMAGE_URL).content
+            elements.append(Image(BytesIO(img_data), width=300, height=300))
+            elements.append(Spacer(1, 12))
+        except Exception:
+            elements.append(Paragraph("(Image could not be loaded)", styles["Normal"]))
 
-    tbl = Table(data, repeatRows=1)
-    tbl.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.lightblue),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-    ]))
-    elements.append(tbl)
+        # Add results table
+        header = ["No.", "Your Answer", "Correct Answer(s)", "Result"]
+        data = [header]
+        for n in range(1, TOTAL_ITEMS + 1):
+            user = answers.get(n, "")
+            gold_display = ", ".join(ANSWER_KEY.get(n, [])) or "(not defined)"
+            ok = results.get(n, False)
+            result_text = "Correct" if ok else "Incorrect"
+            data.append([n, user if user else "—", gold_display, result_text])
 
-    doc.build(elements)
-    buffer.seek(0)
-    return buffer
+        tbl = Table(data, repeatRows=1)
+        tbl.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.lightblue),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ]))
+        elements.append(tbl)
 
-# Always show PDF button after checking (even with blanks)
-if st.session_state.results:
+        doc.build(elements)
+        buffer.seek(0)
+        return buffer
+
     pdf_bytes = generate_pdf(name, st.session_state.answers, st.session_state.results)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"VocalOrgans_Report_{(name if name else 'NoName').replace(' ', '_')}_{timestamp}.pdf"
