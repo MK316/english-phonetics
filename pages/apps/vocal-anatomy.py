@@ -7,7 +7,6 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-import requests
 
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Vocal Organs Quiz", page_icon="🗣️", layout="wide")
@@ -48,7 +47,6 @@ if "results" not in st.session_state:
 
 # ---------------- UI ----------------
 st.image(IMAGE_URL, use_container_width=True, caption="Refer to the numbers (1–14) on this diagram.")
-
 name = st.text_input("✍️ Enter your name (optional):")
 
 with st.form("quiz_form"):
@@ -99,13 +97,9 @@ if st.session_state.results is not None:
         elements.append(Paragraph(f"Timestamp: {timestamp}", styles["Normal"]))
         elements.append(Spacer(1, 12))
 
-        # Add diagram image
-        try:
-            img_data = requests.get(IMAGE_URL).content
-            elements.append(Image(BytesIO(img_data), width=300, height=300))
-            elements.append(Spacer(1, 12))
-        except Exception:
-            elements.append(Paragraph("(Image could not be loaded)", styles["Normal"]))
+        # Add diagram image (direct URL)
+        elements.append(Image(IMAGE_URL, width=300, height=300))
+        elements.append(Spacer(1, 12))
 
         # Add results table
         header = ["No.", "Your Answer", "Correct Answer(s)", "Result"]
@@ -130,6 +124,7 @@ if st.session_state.results is not None:
         buffer.seek(0)
         return buffer
 
+    # Show download button ALWAYS after check
     pdf_bytes = generate_pdf(name, st.session_state.answers, st.session_state.results)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"VocalOrgans_Report_{(name if name else 'NoName').replace(' ', '_')}_{timestamp}.pdf"
