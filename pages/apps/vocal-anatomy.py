@@ -137,4 +137,11 @@ if st.session_state.pdf_ready:
     pdf_bytes = generate_pdf(name, st.session_state.answers, st.session_state.results)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"VocalOrgans_Report_{(name if name else 'NoName').replace(' ', '_')}_{timestamp}.pdf"
-    st.download_button("⬇️ Download PDF Report", data=pdf_bytes, file_name=filename, mime="application/pdf")
+    
+    if st.download_button("⬇️ Download PDF Report", data=pdf_bytes, file_name=filename, mime="application/pdf"):
+        # 🔄 Reset after download
+        st.session_state.answers = {i: "" for i in range(1, TOTAL_ITEMS + 1)}
+        st.session_state.results = None
+        st.session_state.pdf_ready = False
+        st.rerun()
+
