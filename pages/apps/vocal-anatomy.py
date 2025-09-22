@@ -101,6 +101,7 @@ if submitted:
     st.rerun()
 
 # ---------------- Feedback ----------------
+# ---------------- Feedback ----------------
 if st.session_state.checked:
     correct_count = sum(1 for ok in st.session_state.results.values() if ok)
     st.success(f"Score: **{correct_count} / {TOTAL_ITEMS}**")
@@ -133,12 +134,13 @@ if st.session_state.checked:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
         elements.append(Paragraph("<b>Vocal Organs Quiz Report</b>", styles["Title"]))
         elements.append(Spacer(1, 12))
-        elements.append(Paragraph(f"Name: {name}", styles["Normal"]))
+        elements.append(Paragraph(f"Name: {name if name else '(No name)'}", styles["Normal"]))
         elements.append(Paragraph(f"Timestamp: {timestamp}", styles["Normal"]))
         elements.append(Spacer(1, 12))
 
         # Add diagram image
         try:
+            import requests
             img_data = requests.get(IMAGE_URL).content
             img = Image(BytesIO(img_data), width=300, height=300)
             elements.append(img)
@@ -169,7 +171,8 @@ if st.session_state.checked:
         buffer.seek(0)
         return buffer
 
+    # Show button always after checking
     pdf_bytes = generate_pdf(name, st.session_state.answers, st.session_state.results)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    filename = f"VocalOrgans_Report_{name.replace(' ', '_')}_{timestamp}.pdf"
+    filename = f"VocalOrgans_Report_{(name if name else 'NoName').replace(' ', '_')}_{timestamp}.pdf"
     st.download_button("⬇️ Download PDF Report", data=pdf_bytes, file_name=filename, mime="application/pdf")
