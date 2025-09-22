@@ -279,7 +279,7 @@ with tab2:
     #st.write(f"**Word:** {item2['word']}")
     st.audio(audio_bytes2, format=f"audio/{fmt2}")
 
-    placeholder = "/ˈæpəl/ or [ˈæpl̩] (example format)"
+    placeholder = "/ˈæpəl/ or [ˈæpl̩] (example format for phonemic or phonetic transcription)"
     st.text_input(
         f"Type the **{MODE_LABEL} transcription**:",
         key="typed_answer",
