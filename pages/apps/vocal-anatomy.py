@@ -55,18 +55,26 @@ with st.form("quiz_form"):
     col_left, col_right = st.columns(2)
     for i in range(1, TOTAL_ITEMS + 1, 2):
         with col_left:
-            st.session_state.answers[i] = st.text_input(f"{i}. Number {i}", value=st.session_state.answers.get(i, ""), key=f"ans_{i}")
+            st.session_state.answers[i] = st.text_input(
+                f"{i}. Number {i}",
+                value=st.session_state.answers.get(i, ""),
+                key=f"ans_{i}"
+            )
         j = i + 1
         if j <= TOTAL_ITEMS:
             with col_right:
-                st.session_state.answers[j] = st.text_input(f"{j}. Number {j}", value=st.session_state.answers.get(j, ""), key=f"ans_{j}")
+                st.session_state.answers[j] = st.text_input(
+                    f"{j}. Number {j}",
+                    value=st.session_state.answers.get(j, ""),
+                    key=f"ans_{j}"
+                )
     submitted = st.form_submit_button("Check answers")
 
 if submitted:
     st.session_state.results = {
         n: is_correct(n, st.session_state.answers.get(n, "")) for n in range(1, TOTAL_ITEMS + 1)
     }
-    st.session_state.pdf_ready = True
+    st.session_state.pdf_ready = True  # ✅ Flag for PDF
 
 # ---------------- Feedback ----------------
 if st.session_state.results is not None:
