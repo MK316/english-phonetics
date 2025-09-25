@@ -11,3 +11,5 @@ openpyxl
 nltk
 requests
 reportlab
+librosa
+requests
