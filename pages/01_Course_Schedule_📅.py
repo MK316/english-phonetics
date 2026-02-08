@@ -1,127 +1,122 @@
 import streamlit as st
-from datetime import datetime, timedelta
+from datetime import datetime
 import pandas as pd
 
 st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
 st.title("📘 Course Overview")
-st.markdown("[Syllabus](https://github.com/MK316/english-phonetics/raw/main/pages/data/fSyllabus_2025F_Phonetics.pdf)")
+st.markdown("[Syllabus](https://github.com/MK316/english-phonetics/raw/main/pages/data/fSyllabus_2026S_Phonetics.pdf)")
 
 tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "Assignments"])
 
+# =========================================================
+# Tab 1: Schedule (Google Sheet)
+# Columns expected: Date, Chapter, Keywords, Assignments, Next time
+# =========================================================
 with tab1:
+    st.header("📅 Course Schedule (Shared Google Sheet)")
 
-    # Table header
-    table_header = "| Date | Chapter | Keywords | Assignments & Activities | To do |\n"
-    table_divider = "|------|---------|----------|---------------------------|--------|\n"
-    
-    # Start on Tuesday, September 2, 2025
-    start_date = datetime(2025, 9, 2)
-    
-    
-    
-    # ✅ STEP 1: Fill only the weeks you want — here, Week 3 has data (Sept. 16 & 18)
-    schedule_content = {
-        "2025-09-02": ["Ch. 1", "Syllabus, Course overview", "Grouping", "Reading pp. 2~5"],
-        "2025-09-04": ["Ch. 1", "Vocal anatomy", "",""],
-        "2025-09-09": ["Ch. 1", "Speech production", "Video lecture on LMS (Acoustics)", ""],
-        "2025-09-11": ["Ch. 1", "Sound description", "Video lecture on LMS (Vowel description, Suprasegmental)", ""],
-        "2025-09-16": ["Ch. 2", "Phonetics & Phonology", "", "Sound description practice #1"],
-        "2025-09-18": ["Ch. 2", "Phonetic transcription", "", "Sound description practice #2"],
-        "2025-09-23": ["Monday 9(5-8PM), Ch. 3", "", "", "Ch.1 Exercise (group submission; Due by 9/23)"],
-        "2025-09-25": ["Ch. 3", "", "", ""],
-        "2025-09-30": ["Ch. 3", "", "", ""],
-        "2025-10-02": ["Chs 1-3", "In-class quiz", "", "🔴 Quiz #1"],
-        "2025-10-07": ["Holiday", "No class", "", ""],
-        "2025-10-09": ["Holiday", "No class", "", ""],
-        "2025-10-14": ["", "Video Lecture (1) on LMS", "", ""],
-        "2025-10-16": ["", "Video Lecture (2)", "", ""],
-        "2025-10-21": ["", "Video Lecture (1)", "", ""],
-        "2025-10-23": ["", "Video Lecture (2)", "", ""],
-        "2025-10-28": ["", "Video Lecture (1)", "", ""],
-        "2025-10-30": ["", "Video Lecture (2)", "", ""],
-        "2025-11-04": ["", "Make-up (9/23)", "Group meeting", "Song transcription"],
-        "2025-11-06": ["", "Make-up (9/23)", "Group meeting", "Song transcripti"],
-        "2025-11-11": ["", "Make-up (12/22)", "Group meeting", "Song transcripti"],
-        "2025-11-13": ["", "Make-up (12/22)", "Group meeting", "Song transcripti"],
-        "2025-11-18": ["Chs. 1-4", "", "In-class quiz", "🔴 Quiz #2"],
-        "2025-11-20": ["", "", "", ""],
-        "2025-11-25": ["", "", "", ""],
-        "2025-11-27": ["", "", "", ""],
-        "2025-12-02": ["", "", "", ""],
-        "2025-12-04": ["", "", "", ""],
-        "2025-12-09": ["", "", "", ""],
-        "2025-12-11": ["", "", "", ""],
-        "2025-12-16": ["", "", "", ""],
-        "2025-12-18": ["", "", "", "🔴 Final exam"]
-    }
-    
-    # ✅ STEP 2: Build the markdown table
-    table_md = ""
-    
-    table_md = ""
-    
-    for week in range(16):
-        # --- choose emoji/tag first ---
-        if 7 <= (week + 1) <= 11:
-            emoji, tag = "💙", " (Academic trip) 〽️ 〽️ 〽️ 〽️ 〽️ 〽️ 〽️"
+    SHEET_LINK = "https://docs.google.com/spreadsheets/d/1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8/edit?usp=sharing"
+    st.markdown(f"🔗 **Open / Edit the shared schedule sheet:** {SHEET_LINK}")
+
+    SHEET_ID = "1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8"
+    CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid=0"
+
+    @st.cache_data(show_spinner=False)
+    def load_schedule(csv_url: str) -> pd.DataFrame:
+        df = pd.read_csv(csv_url)
+
+        # Normalize column names
+        df.columns = [c.strip() for c in df.columns]
+
+        required = ["Week", "Date", "Chapter", "Keywords", "Assignments", "Next time"]
+        missing = [c for c in required if c not in df.columns]
+        if missing:
+            raise ValueError(
+                f"Missing columns in Google Sheet: {missing}\n"
+                f"Expected: {required}"
+            )
+
+        # Parse date
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+
+        # Sort by Week → Date (pedagogically clearer)
+        df = df.sort_values(["Week", "Date"], na_position="last").reset_index(drop=True)
+
+        # Display-friendly date
+        df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
+
+        # Clean NaN
+        for col in required:
+            df[col] = df[col].fillna("")
+
+        return df
+
+    try:
+        schedule_df = load_schedule(CSV_URL)
+
+        # Optional keyword filter
+        q = st.text_input(
+            "Filter (any keyword):",
+            placeholder="e.g., Week 3, Ch. 2, quiz, transcription…"
+        ).strip().lower()
+
+        if q:
+            mask = schedule_df.apply(
+                lambda row: row.astype(str).str.lower().str.contains(q).any(),
+                axis=1
+            )
+            view_df = schedule_df[mask].copy()
         else:
-            emoji, tag = "🗓️", ""
-    
-        # --- label & header (once) ---
-        week_label = f"**{emoji} Week {week + 1:02d}{tag}**"
-        table_md += f"\n{week_label}\n\n"
-        table_md += table_header + table_divider
-    
-        # --- dates for this week ---
-        tuesday  = start_date + timedelta(weeks=week)
-        thursday = tuesday + timedelta(days=2)
-    
-        # --- format date (red for Oct 7 & 9 only) ---
-        def format_date(d):
-            s = d.strftime("%Y-%m-%d")
-            if s in ("2025-10-07", "2025-10-09"):
-                return f"<span style='color:red'>{d.strftime('%b. %d')}</span>"
-            return d.strftime("%b. %d")
-    
-        # --- fetch content once for each date ---
-        tue_data = schedule_content.get(tuesday.strftime("%Y-%m-%d"),  ["", "", "", ""])
-        thu_data = schedule_content.get(thursday.strftime("%Y-%m-%d"), ["", "", "", ""])
-    
-        # --- append EXACTLY TWO ROWS (do not append anywhere else) ---
-        table_md += f"| {format_date(tuesday)}  | {tue_data[0]} | {tue_data[1]} | {tue_data[2]} | {tue_data[3]} |\n"
-        table_md += f"| {format_date(thursday)} | {thu_data[0]} | {thu_data[1]} | {thu_data[2]} | {thu_data[3]} |\n"
-    
+            view_df = schedule_df.copy()
 
-    # ✅ STEP 3: Display it
-    st.markdown(table_md, unsafe_allow_html=True)
+        st.dataframe(
+            view_df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Week": st.column_config.Column(width=70),
+                "Date": st.column_config.Column(width=90),
+                "Chapter": st.column_config.Column(width=90),
+                "Keywords": st.column_config.Column(width="medium"),
+                "Assignments": st.column_config.Column(width="large"),
+                "Next time": st.column_config.Column(width="large"),
+            },
+        )
 
+        st.caption("✔️ Update the Google Sheet anytime — this table always shows the latest version.")
 
+    except Exception as e:
+        st.error("Failed to load the Google Sheet schedule.")
+        st.code(str(e))
+        st.info(
+            "If this is not the first sheet tab, change `gid=0` in the CSV URL.\n"
+            "Open the sheet → click the tab → check the `gid=` value in the URL."
+        )
 
 # ---------------- Tab 2: Syllabus / Course Info ----------------
 with tab2:
-    st.markdown("## 💦 **English Phonetics (Fall 2025)**")
+    st.markdown("## 💦 **English Phonetics (Spring 2026)**")
     st.caption("Quick syllabus overview")
 
-    # --- Top section: key facts + QR/link ---
     col1, col2 = st.columns([3, 2], vertical_alignment="top")
 
     with col1:
         st.markdown(
             """
             **• Instructor:** Miran Kim (Professor, Rm# 301-316)  
-            **• Meeting Schedule:** Tuesdays (1–1:50 pm) & Thursdays (2–2:50 pm)  
-            **• Digital classroom:** [MK316.github.io](https://MK316.github.io)  — course apps & resources  
+            **• Meeting Schedule:** Mondays (11–11:50 am) & Thursdays (9–10:50 am)  
+            **• Digital classroom:** [MK316.github.io](https://englishphonetics.streamlit.app)  — course apps & resources  
             **• LMS:** rec.ac.kr/gnu  
-            **• Classroom:** 301-330  
+            **• Classroom:** 301-334   
             """,
         )
 
     with col2:
         QR_URL = "https://github.com/MK316/english-phonetics/raw/main/pages/images/qr_phonetics.png"
-        st.image(QR_URL, caption="Digital classroom QR", width=150)  # set width in pixels
+        st.image(QR_URL, caption="Digital classroom QR", width=150)
+
     st.divider()
 
-    # --- Course overview ---
     st.markdown("### 📝 Course overview")
     st.markdown(
         """
@@ -136,11 +131,8 @@ with tab2:
         """
     )
     AUDIO_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/audio/audio-overview.mp3"
-
-    # Click-to-play audio (no autoplay)
     st.audio(AUDIO_URL, format="audio/mp3", start_time=0)
 
-    # --- Textbook & Software ---
     st.markdown("### 📚 Textbook & Software")
     tb, sw = st.columns(2)
     with tb:
@@ -160,7 +152,6 @@ with tab2:
 
     st.divider()
 
-    # --- Evaluation table ---
     st.markdown("### ✅ Evaluation")
     data = [
         ["Attendance & class participation", "10%", "Unexcused absence (−1); late check-in (−0.2)"],
@@ -169,10 +160,10 @@ with tab2:
         ["Assignments", "10%", "Group activities: Exercises (5), Transcription (5)"],
         ["Summary notes", "10%", "All chapters (will be checked 3 times)"],
     ]
-    df = pd.DataFrame(data, columns=["Component", "Percentage", "Notes"])
+    df_eval = pd.DataFrame(data, columns=["Component", "Percentage", "Notes"])
 
     st.dataframe(
-        df,
+        df_eval,
         use_container_width=True,
         hide_index=True,
         column_config={
@@ -182,7 +173,9 @@ with tab2:
         },
     )
 
-    st.info(
-        "Note: The course schedule can be subject to change. "
-        "Most updates will be posted here."
-    )
+    st.info("Note: The course schedule can be subject to change. Most updates will be posted here.")
+
+# ---------------- Tab 3: Assignments ----------------
+with tab3:
+    st.header("🧩 Assignments")
+    st.caption("Add your assignments page content here.")
