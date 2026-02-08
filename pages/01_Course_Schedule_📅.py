@@ -24,40 +24,50 @@ with tab1:
     @st.cache_data(show_spinner=False)
     def load_schedule(csv_url: str) -> pd.DataFrame:
         df = pd.read_csv(csv_url)
-
-        # Normalize column names
         df.columns = [c.strip() for c in df.columns]
 
-        required = ["Week", "Date", "Chapter", "Keywords", "Assignments", "Next time"]
+        # ✅ Now includes Day
+        required = ["Week", "Date", "Day", "Chapter", "Keywords", "Assignments", "Next time"]
         missing = [c for c in required if c not in df.columns]
         if missing:
-            raise ValueError(
-                f"Missing columns in Google Sheet: {missing}\n"
-                f"Expected: {required}"
-            )
+            raise ValueError(f"Missing columns in Google Sheet: {missing}\nExpected: {required}")
 
-        # Parse date
+        # Parse Date
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
 
-        # Sort by Week → Date (pedagogically clearer)
-        df = df.sort_values(["Week", "Date"], na_position="last").reset_index(drop=True)
+        # ✅ Fix Week ordering: extract numeric week for sorting
+        # Works for "Week 1", "Week1", "1", etc.
+        week_num = (
+            df["Week"]
+            .astype(str)
+            .str.extract(r"(\d+)", expand=False)
+        )
+        df["_week_num"] = pd.to_numeric(week_num, errors="coerce")
 
-        # Display-friendly date
+        # Sort by week number → date
+        df = df.sort_values(["_week_num", "Date"], na_position="last").reset_index(drop=True)
+
+        # Display-friendly Date
         df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
 
         # Clean NaN
         for col in required:
             df[col] = df[col].fillna("")
 
+        # Remove helper column
+        df = df.drop(columns=["_week_num"])
+
+        # ✅ Optional: force column order (Day is 3rd)
+        df = df[["Week", "Date", "Day", "Chapter", "Keywords", "Assignments", "Next time"]]
+
         return df
 
     try:
         schedule_df = load_schedule(CSV_URL)
 
-        # Optional keyword filter
         q = st.text_input(
             "Filter (any keyword):",
-            placeholder="e.g., Week 3, Ch. 2, quiz, transcription…"
+            placeholder="e.g., Week 3, Monday, Ch. 2, quiz, transcription…"
         ).strip().lower()
 
         if q:
@@ -75,7 +85,8 @@ with tab1:
             hide_index=True,
             column_config={
                 "Week": st.column_config.Column(width=70),
-                "Date": st.column_config.Column(width=90),
+                "Date": st.column_config.Column(width=95),
+                "Day": st.column_config.Column(width=70),
                 "Chapter": st.column_config.Column(width=90),
                 "Keywords": st.column_config.Column(width="medium"),
                 "Assignments": st.column_config.Column(width="large"),
