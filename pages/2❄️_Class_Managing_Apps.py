@@ -71,7 +71,7 @@ with tabs[2]:
     st.subheader("👥 Grouping Tool")
     st.caption("Your CSV should have at least the column `Names`.")
 
-    default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/Phonetics2026a.csv"
+    default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/roster_2026a.csv"
 #    st.markdown(f"[📎 Sample File: S25DL-roster.csv]({default_url})")
 
     uploaded_file = st.file_uploader("🌱 Step1: Upload your CSV file (optional)", type=["csv"])
@@ -83,7 +83,7 @@ with tabs[2]:
         df = pd.read_csv(default_url)
         source_label = "📂 Using default GitHub data"
 
-    if all(col in df.columns for col in ['Course', 'Name_ori']):
+    if all(col in df.columns for col in ['Course', 'Names']):
         st.success(source_label)
 
         # Step 1: Select Course
@@ -98,7 +98,7 @@ with tabs[2]:
         if st.button("🌱 Step 4: Generate Groups"):
             # Filter by course
             course_df = df[df['Course'] == selected_course]
-            names = course_df['Name_ori'].dropna().tolist()
+            names = course_df['Names'].dropna().tolist()
             random.shuffle(names)
 
             total_needed = num_group3 * 3 + num_group4 * 4
