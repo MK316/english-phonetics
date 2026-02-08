@@ -1,222 +1,286 @@
-import re
-import pandas as pd
 import streamlit as st
+import pandas as pd
 from datetime import datetime
+from io import BytesIO
 
-st.set_page_config(page_title="Passage Fill-in Quiz", layout="wide")
+# PDF (ReportLab)
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
-# =========================
-# 1) Data load
-# =========================
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1QYiGg1ME8pql-wAnwGsU6GjTc6bniKHvsVJK4aMn3fI/edit?usp=sharing"
+st.set_page_config(page_title="Passage Blanks Practice", layout="wide")
 
-@st.cache_data(show_spinner=False)
-def load_sheet(url: str) -> pd.DataFrame:
+# ✅ CHANGE THIS to your GitHub RAW CSV URL
+CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001.csv"
+# Expected columns: Chapter, Passage, Correct answers
+
+@st.cache_data
+def load_data(url: str) -> pd.DataFrame:
     df = pd.read_csv(url)
-
-    # Expected columns (case-sensitive). Rename if your sheet differs.
-    # Chapter | Passage | Correct answers
+    # normalize column names just in case
+    df.columns = [c.strip() for c in df.columns]
     required = {"Chapter", "Passage", "Correct answers"}
     missing = required - set(df.columns)
     if missing:
-        raise ValueError(f"Missing columns in sheet: {missing}")
-
-    df = df.dropna(subset=["Chapter", "Passage", "Correct answers"]).copy()
+        raise ValueError(f"CSV missing columns: {', '.join(sorted(missing))}")
     df["Chapter"] = df["Chapter"].astype(str).str.strip()
     df["Passage"] = df["Passage"].astype(str)
     df["Correct answers"] = df["Correct answers"].astype(str)
-
     return df
 
-def normalize(s: str) -> str:
-    """Normalize user input and answers for robust matching."""
-    return re.sub(r"\s+", " ", str(s).strip().lower())
+def split_answers(ans: str) -> list[str]:
+    # "Phonetics, intelligibly, described" -> ["Phonetics","intelligibly","described"]
+    parts = [a.strip() for a in ans.split(",") if a.strip()]
+    return parts
 
-def split_answers(ans: str):
-    """Split comma-separated answers into a list."""
-    return [a.strip() for a in str(ans).split(",") if a.strip()]
+def build_pdf_report(
+    user_name: str,
+    chapter: str,
+    passage_no: int,
+    started_at: datetime,
+    finished_at: datetime,
+    score: int,
+    total: int,
+    incorrect_details: list[dict],
+) -> bytes:
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    width, height = A4
 
-def count_blanks(passage: str) -> int:
-    """Count occurrences of ___ in the passage."""
-    return len(re.findall(r"___", passage))
+    y = height - 60
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, "Passage Practice Report")
+    y -= 30
 
-# =========================
-# 2) UI + session state
-# =========================
-st.title("🧩 Passage Fill-in Practice")
-st.caption("Select a chapter and passage, click Start, fill the blanks, then Submit.")
+    c.setFont("Helvetica", 11)
+    c.drawString(50, y, f"Name: {user_name}")
+    y -= 18
+    c.drawString(50, y, f"Chapter: {chapter}")
+    y -= 18
+    c.drawString(50, y, f"Passage #: {passage_no}")
+    y -= 18
+    c.drawString(50, y, f"Start time: {started_at.strftime('%Y-%m-%d %H:%M:%S')}")
+    y -= 18
+    c.drawString(50, y, f"Completion time: {finished_at.strftime('%Y-%m-%d %H:%M:%S')}")
+    y -= 24
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, f"Final score: {score} / {total}")
+    y -= 26
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Incorrect items:")
+    y -= 18
+
+    c.setFont("Helvetica", 11)
+    if not incorrect_details:
+        c.drawString(50, y, "None 🎉")
+        y -= 18
+    else:
+        for item in incorrect_details:
+            line = f"- Blank {item['blank_index']}: your answer = '{item['user']}' | correct = '{item['correct']}'"
+            # basic line wrap
+            for chunk in [line[i:i+95] for i in range(0, len(line), 95)]:
+                if y < 80:
+                    c.showPage()
+                    y = height - 60
+                    c.setFont("Helvetica", 11)
+                c.drawString(50, y, chunk)
+                y -= 16
+
+    c.showPage()
+    c.save()
+    buf.seek(0)
+    return buf.read()
+
+# -------------------------
+# Load data
+# -------------------------
+st.title("🧩 Passage Blank Practice")
 
 try:
-    df = load_sheet(SHEET_CSV_URL)
+    df = load_data(CSV_URL)
 except Exception as e:
-    st.error(f"Failed to load Google Sheet.\n\n{e}")
+    st.error("Failed to load CSV.")
+    st.code(str(e))
     st.stop()
 
-chapters = sorted(df["Chapter"].unique().tolist())
-left, right = st.columns([1, 2], vertical_alignment="top")
+# -------------------------
+# UI: select Chapter + Passage
+# -------------------------
+chapters = sorted(df["Chapter"].dropna().unique().tolist())
+colA, colB, colC = st.columns([2, 2, 2])
 
-with left:
-    chapter = st.selectbox("Chapter", chapters, key="sel_chapter")
+with colA:
+    user_name = st.text_input("Your name (English):", key="user_name")
 
-    df_ch = df[df["Chapter"] == chapter].reset_index(drop=True)
+with colB:
+    selected_ch = st.selectbox("Select Chapter:", chapters, key="selected_chapter")
+
+filtered = df[df["Chapter"] == selected_ch].reset_index(drop=True)
+
+with colC:
     passage_idx = st.selectbox(
-        "Passage number",
-        options=list(range(1, len(df_ch) + 1)),
-        format_func=lambda x: f"Passage {x}",
-        key="sel_passage_num",
+        "Select Passage number:",
+        list(range(1, len(filtered) + 1)),
+        key="passage_number",
     )
 
-    # Reset button
-    if st.button("Reset", use_container_width=True):
-        for k in list(st.session_state.keys()):
-            if k.startswith(("quiz_", "blank_", "fb_")):
-                del st.session_state[k]
-        st.rerun()
-
-# Identify selected row
-row = df_ch.iloc[int(passage_idx) - 1]
+row = filtered.iloc[passage_idx - 1]
 passage_text = row["Passage"]
-answers = split_answers(row["Correct answers"])
+correct_list = split_answers(row["Correct answers"])
 
-n_blanks = count_blanks(passage_text)
+st.caption("Type your name, choose a chapter and passage, then click Start. After submission, you can download a PDF report.")
 
-# Safety check: number of blanks vs answers
-if n_blanks != len(answers):
-    st.warning(
-        f"⚠️ This passage has {n_blanks} blank(s) but {len(answers)} answer(s). "
-        f"Please make them match in the Google Sheet."
-    )
+# -------------------------
+# Session state init
+# -------------------------
+if "started" not in st.session_state:
+    st.session_state.started = False
+if "started_at" not in st.session_state:
+    st.session_state.started_at = None
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "incorrect_details" not in st.session_state:
+    st.session_state.incorrect_details = []
 
-# Session keys
-quiz_key = f"quiz_{chapter}_{passage_idx}"
+def do_start():
+    st.session_state.started = True
+    st.session_state.submitted = False
+    st.session_state.score = 0
+    st.session_state.incorrect_details = []
+    st.session_state.started_at = datetime.now()
 
-if quiz_key not in st.session_state:
-    st.session_state[quiz_key] = {
-        "started": False,
-        "submitted": False,
-        "start_time": None,
-        "submit_time": None,
-    }
+def do_reset():
+    st.session_state.started = False
+    st.session_state.submitted = False
+    st.session_state.score = 0
+    st.session_state.incorrect_details = []
+    st.session_state.started_at = None
+    # clear inputs for blanks
+    for k in ["blank1", "blank2", "blank3"]:
+        if k in st.session_state:
+            st.session_state[k] = ""
 
-# =========================
-# 3) Start / render passage
-# =========================
-with right:
-    st.markdown("#### Passage")
+btn1, btn2 = st.columns([1, 1])
+with btn1:
+    st.button("✅ Start", on_click=do_start, use_container_width=True)
+with btn2:
+    st.button("🔄 Reset", on_click=do_reset, use_container_width=True)
 
-    # Start button
-    c1, c2 = st.columns([1, 3])
-    with c1:
-        start_clicked = st.button("✅ Start", use_container_width=True)
+st.divider()
 
-    if start_clicked and not st.session_state[quiz_key]["started"]:
-        st.session_state[quiz_key]["started"] = True
-        st.session_state[quiz_key]["submitted"] = False
-        st.session_state[quiz_key]["start_time"] = datetime.now().isoformat(timespec="seconds")
+# -------------------------
+# Main practice area
+# -------------------------
+if not st.session_state.started:
+    st.info("Click **Start** to begin.")
+    st.stop()
 
-        # Clear prior blank inputs for this passage
-        for i in range(n_blanks):
-            k = f"blank_{chapter}_{passage_idx}_{i}"
-            if k in st.session_state:
-                del st.session_state[k]
-        st.rerun()
+if "___" not in passage_text:
+    st.warning("This passage has no blanks (___). Please check your CSV Passage text.")
+    st.stop()
 
-    if not st.session_state[quiz_key]["started"]:
-        st.info("Click **Start** to begin.")
-        st.stop()
+parts = passage_text.split("___")
 
-    # Build "in-place" passage renderer:
-    parts = re.split(r"___", passage_text)
+# Force exactly 3 blanks as you requested
+# (If your passage has fewer/more than 3 blanks, we’ll still show 3 inputs,
+# but you should keep passages consistent with 3 blanks.)
+blank_count = 3
 
-    # Render each blank as a small text input between text chunks
-    # We use columns so the blank appears "in the flow" (not perfect inline HTML,
-    # but visually it sits between text segments).
-    for i in range(n_blanks):
-        st.write(parts[i], end="") if hasattr(st, "write") else None  # harmless fallback
+# Ensure correct_list has 3 entries (pad if needed)
+while len(correct_list) < blank_count:
+    correct_list.append("")
+if len(correct_list) > blank_count:
+    correct_list = correct_list[:blank_count]
 
-        # Put blank next to text using columns (compact)
-        col_text, col_blank = st.columns([8, 2], vertical_alignment="center")
-        with col_text:
-            st.markdown(parts[i])
-        with col_blank:
-            st.text_input(
-                label=f"Blank {i+1}",
-                key=f"blank_{chapter}_{passage_idx}_{i}",
-                label_visibility="collapsed",
-                placeholder="type here",
+st.subheader(f"{selected_ch} · Passage {passage_idx}")
+
+# Display passage with inputs inline (segment -> input -> segment -> input ...)
+# We’ll render in order: parts[0], blank1, parts[1], blank2, parts[2], blank3, rest
+for i in range(blank_count):
+    # text segment
+    if i < len(parts):
+        st.write(parts[i])
+    # blank input
+    st.text_input(f"Blank {i+1}", key=f"blank{i+1}")
+
+# trailing text
+if len(parts) > blank_count:
+    st.write("___".join(parts[blank_count:]))
+
+st.divider()
+
+def do_submit():
+    st.session_state.submitted = True
+
+    user_answers = [
+        (st.session_state.get("blank1", "") or "").strip(),
+        (st.session_state.get("blank2", "") or "").strip(),
+        (st.session_state.get("blank3", "") or "").strip(),
+    ]
+
+    incorrect = []
+    score = 0
+
+    # Compare case-insensitively, but keep original for report
+    for i in range(blank_count):
+        ua = user_answers[i]
+        ca = correct_list[i].strip()
+
+        if ua.lower() == ca.lower() and ca != "":
+            score += 1
+        else:
+            incorrect.append(
+                {"blank_index": i + 1, "user": ua, "correct": ca}
             )
 
-    # Last chunk after final blank
-    if parts:
-        st.markdown(parts[-1])
+    st.session_state.score = score
+    st.session_state.incorrect_details = incorrect
 
-    st.markdown("---")
+st.button("📩 Submit (check answers)", on_click=do_submit, use_container_width=True)
 
-    # Submission button (only after all blanks have something)
-    user_inputs = [
-        st.session_state.get(f"blank_{chapter}_{passage_idx}_{i}", "")
-        for i in range(n_blanks)
-    ]
-    all_filled = all(normalize(x) for x in user_inputs)
+# -------------------------
+# Feedback area
+# -------------------------
+if st.session_state.submitted:
+    st.subheader("Feedback")
 
-    submit_disabled = (not all_filled) or st.session_state[quiz_key]["submitted"]
+    # Per-blank feedback
+    for item in range(blank_count):
+        ua = (st.session_state.get(f"blank{item+1}", "") or "").strip()
+        ca = correct_list[item].strip()
 
-    submit_clicked = st.button(
-        "📌 Submit",
-        use_container_width=True,
-        disabled=submit_disabled,
-    )
-
-    if not all_filled and not st.session_state[quiz_key]["submitted"]:
-        st.caption("Fill in all blanks to enable Submit.")
-
-    # =========================
-    # 4) Feedback
-    # =========================
-    if submit_clicked and not st.session_state[quiz_key]["submitted"]:
-        st.session_state[quiz_key]["submitted"] = True
-        st.session_state[quiz_key]["submit_time"] = datetime.now().isoformat(timespec="seconds")
-
-        # Compare
-        results = []
-        correct_count = 0
-
-        for i in range(n_blanks):
-            ui = normalize(user_inputs[i])
-            ca = normalize(answers[i]) if i < len(answers) else ""
-            ok = (ui == ca)
-            results.append((user_inputs[i], answers[i] if i < len(answers) else "", ok))
-            correct_count += int(ok)
-
-        st.session_state[f"fb_{quiz_key}"] = {
-            "results": results,
-            "correct_count": correct_count,
-            "total": n_blanks,
-        }
-        st.rerun()
-
-    fb = st.session_state.get(f"fb_{quiz_key}", None)
-    if fb and st.session_state[quiz_key]["submitted"]:
-        total = fb["total"]
-        correct_count = fb["correct_count"]
-        results = fb["results"]
-
-        st.subheader("Feedback")
-
-        # Overall
-        if total > 0 and correct_count == total:
-            st.success(f"✅ Perfect! {correct_count} / {total}")
+        if ua.lower() == ca.lower() and ca != "":
+            st.success(f"Blank {item+1}: Correct ✅")
         else:
-            st.warning(f"Result: {correct_count} / {total}")
+            st.error(f"Blank {item+1}: Incorrect ❌  (Correct: {ca})")
 
-        # Per blank
-        for i, (u, a, ok) in enumerate(results, start=1):
-            if ok:
-                st.success(f"Blank {i}: Correct ✅  ({u})")
-            else:
-                st.error(f"Blank {i}: Incorrect ❌  (Your answer: {u} | Correct: {a})")
+    total = blank_count
+    st.info("Score is saved for the PDF report (not shown during practice unless you want it).")
 
-        st.caption(
-            f"Start time: {st.session_state[quiz_key]['start_time']}  |  "
-            f"Submit time: {st.session_state[quiz_key]['submit_time']}"
+    # PDF button
+    st.divider()
+    if not user_name.strip():
+        st.warning("Enter your name above to generate the PDF report.")
+    else:
+        finished_at = datetime.now()
+        pdf_bytes = build_pdf_report(
+            user_name=user_name.strip(),
+            chapter=selected_ch,
+            passage_no=passage_idx,
+            started_at=st.session_state.started_at or finished_at,
+            finished_at=finished_at,
+            score=st.session_state.score,
+            total=total,
+            incorrect_details=st.session_state.incorrect_details,
+        )
+
+        st.download_button(
+            "📄 Generate PDF report",
+            data=pdf_bytes,
+            file_name=f"report_{user_name.strip()}_{selected_ch}_passage{passage_idx}.pdf",
+            mime="application/pdf",
+            use_container_width=True,
         )
