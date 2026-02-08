@@ -150,7 +150,8 @@ if start_btn:
 # =========================
 # MAIN CONTENT
 # =========================
-st.title("📘 Passage Blank Practice")
+st.title("📘 Reading with keywords")
+st.write("🍄 Choose chapter and passage using the sidebar on the left (Click >> on the top left). Then click 'Start' button.")
 
 if not st.session_state.started or st.session_state.row_idx is None:
     st.info("👈 Select a Chapter and Passage from the sidebar, then click **Start**.")
