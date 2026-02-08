@@ -10,7 +10,7 @@ from reportlab.pdfgen import canvas
 st.set_page_config(page_title="Passage Blanks Practice", layout="wide")
 
 # ✅ CHANGE THIS to your GitHub RAW CSV URL
-CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001.csv"
+CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001a.csv"
 # Expected columns: Chapter, Passage, Correct answers
 
 @st.cache_data
