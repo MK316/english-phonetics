@@ -153,7 +153,7 @@ if start_btn:
 st.title("📘 Reading with keywords")
 
 if not st.session_state.started or st.session_state.row_idx is None:
-    st.info("🍄 👈 Select a Chapter and Passage from the sidebar, then click ✅ **Start** button there.")
+    st.info("🍄 Use the sidebar on the left (>>) to select a Chapter and Passage. Then click ✅ **Start** button there.")
     st.stop()
 
 row = df.loc[st.session_state.row_idx]
