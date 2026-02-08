@@ -14,9 +14,7 @@ tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "Assignments"])
 # =========================================================
 with tab1:
     st.header("📅 Course Schedule (Shared Google Sheet)")
-
-    SHEET_LINK = "https://docs.google.com/spreadsheets/d/1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8/edit?usp=sharing"
-    st.markdown(f"🔗 **Open / Edit the shared schedule sheet:** {SHEET_LINK}")
+    st.markdown("🔗 [Google Sheet](https://docs.google.com/spreadsheets/d/1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8/edit?usp=sharing)")
 
     SHEET_ID = "1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8"
     CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid=0"
