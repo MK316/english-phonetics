@@ -13,7 +13,7 @@ tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "Assignments"])
 # Columns expected: Date, Chapter, Keywords, Assignments, Next time
 # =========================================================
 with tab1:
-    st.header("📅 Course Schedule (Shared Google Sheet)")
+    st.header("📅 Course Schedule")
     st.markdown("🔗 [Google Sheet](https://docs.google.com/spreadsheets/d/1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8/edit?usp=sharing)")
 
     SHEET_ID = "1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8"
