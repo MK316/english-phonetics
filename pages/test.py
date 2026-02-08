@@ -11,8 +11,8 @@ st.set_page_config(page_title="Passage Blank Practice", layout="wide")
 
 # ✅ Replace this with your GitHub RAW CSV URL
 # Example:
-# CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001a.csv"
-CSV_URL = "PASTE_YOUR_RAW_CSV_URL_HERE"
+CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001a.csv"
+
 
 
 # =========================
