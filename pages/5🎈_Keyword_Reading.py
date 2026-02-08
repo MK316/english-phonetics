@@ -155,7 +155,7 @@ st.title("📘 Reading with keywords")
 if not st.session_state.started or st.session_state.row_idx is None:
     st.info(
         "🍄 **How to start?**\n\n"
-        "1. Go to the sidebar. If you don't see it, click (>>) on the top left." 
+        "1. Go to the sidebar. If you don't see it, click (>>) on the top left.\n" 
         "2. At the bottom of the sidebar, select a **Chapter** and **Passage** above.\n"
         "3. Click the ✅ **Start** button to begin your practice."
     )
