@@ -4,7 +4,7 @@ import streamlit as st
 st.set_page_config(page_title="🎵 Pop Song Transcription Project", layout="centered")
 st.title("🎵 Group Project: Pop Song Transcription")
 st.markdown("Select a song from the dropdown to watch and transcribe it.")
-st.write("Submit to Padlet by midnight on 11/7 (Thursday)")
+st.write("Please submit to Padlet by midnight on Thursday, May 7")
 # ---------------- Song list ----------------
 songs = {
     "Lemon tree (G1)": "https://youtu.be/XAFS43NKFag?si=r-2uDkTIS4PJ0tV-",
