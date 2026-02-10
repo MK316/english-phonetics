@@ -11,7 +11,7 @@ import requests
 st.set_page_config(page_title="Passage Blank Practice", layout="wide")
 
 # ✅ Your GitHub RAW CSV URL
-CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001a.csv"
+CSV_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/readings/readingquiz001b.csv"
 
 # =========================
 # HELPERS
