@@ -69,12 +69,11 @@ with tabs[1]:
 # Grouping tab
 with tabs[2]:
     st.subheader("👥 Grouping Tool")
-    st.caption("Your CSV should have at least the column `Names`.")
+    st.caption("Your CSV should have at least the column `Course` and `Names`.")
 
     default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/Roster_2026b_0302.csv"
-#    st.markdown(f"[📎 Sample File: S25DL-roster.csv]({default_url})")
 
-    uploaded_file = st.file_uploader("🌱 Step1: Upload your CSV file (optional)", type=["csv"])
+    uploaded_file = st.file_uploader("🌱 Step 1: Upload your CSV file (optional)", type=["csv"])
 
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
@@ -86,47 +85,57 @@ with tabs[2]:
     if all(col in df.columns for col in ['Course', 'Names']):
         st.success(source_label)
 
-        # Step 1: Select Course
+        # Step 2: Select Course
         course_list = df['Course'].dropna().unique().tolist()
         selected_course = st.selectbox("🌱 Step 2: Select Course for Grouping", course_list)
 
-        # Step 2: Group size input
-        st.markdown("##### 🌱 Step3: Group Settings (Currently 17 students: 3*3G and 4*2G)")
-        num_group3 = st.number_input("Number of 3-member groups", min_value=0, step=1)
-        num_group4 = st.number_input("Number of 4-member groups", min_value=0, step=1)
+        # Filter by course to show dynamic student count
+        course_df = df[df['Course'] == selected_course]
+        names = course_df['Names'].dropna().tolist()
+        st.markdown(f"##### 🌱 Step 3: Group Settings (Total: {len(names)} students)")
+        
+        col_in1, col_in2 = st.columns(2)
+        with col_in1:
+            num_group3 = st.number_input("Number of 3-member groups", min_value=0, value=0, step=1)
+        with col_in2:
+            num_group4 = st.number_input("Number of 4-member groups", min_value=0, value=0, step=1)
 
         if st.button("🌱 Step 4: Generate Groups"):
-            # Filter by course
-            course_df = df[df['Course'] == selected_course]
-            names = course_df['Names'].dropna().tolist()
             random.shuffle(names)
+            grouped_data = []
+            group_num = 1
 
-            total_needed = num_group3 * 3 + num_group4 * 4
-
-            if total_needed > len(names):
-                st.error(f"❗ Not enough students in {selected_course}. Requested {total_needed}, available {len(names)}.")
-            else:
-                grouped_data = []
-                group_num = 1
-
-                # Make 3-member groups
-                for _ in range(num_group3):
+            # 1. 3인 그룹 생성
+            for _ in range(num_group3):
+                if len(names) >= 3:
                     members = names[:3]
                     names = names[3:]
-                    grouped_data.append([f"Group {group_num}"] + members)
+                    grouped_data.append({"Group": f"Group {group_num}", **{f"Member{i+1}": m for i, m in enumerate(members)}})
                     group_num += 1
 
-                # Make 4-member groups
-                for _ in range(num_group4):
+            # 2. 4인 그룹 생성
+            for _ in range(num_group4):
+                if len(names) >= 4:
                     members = names[:4]
                     names = names[4:]
-                    grouped_data.append([f"Group {group_num}"] + members)
+                    grouped_data.append({"Group": f"Group {group_num}", **{f"Member{i+1}": m for i, m in enumerate(members)}})
                     group_num += 1
+                elif len(names) > 0: # 4명이 안 되지만 남은 인원이 있는 경우 (예시의 2명 상황)
+                    break 
 
-                # Prepare final DataFrame
-                max_members = max(len(group) - 1 for group in grouped_data)
-                columns = ['Group'] + [f'Member{i+1}' for i in range(max_members)]
-                grouped_df = pd.DataFrame(grouped_data, columns=columns)
+            # 3. [핵심] 남은 인원 처리 (Remaining members)
+            if len(names) > 0:
+                grouped_data.append({"Group": f"Group {group_num} (Remained)", **{f"Member{i+1}": m for i, m in enumerate(names)}})
+
+            if not grouped_data:
+                st.warning("No groups were created. Please check your settings.")
+            else:
+                # 데이터프레임 생성 (딕셔너리 리스트를 사용하면 멤버 수가 달라도 알아서 NaN 처리가 됨)
+                grouped_df = pd.DataFrame(grouped_data)
+                
+                # 컬럼 순서 정렬 (Group, Member1, Member2...)
+                cols = ['Group'] + [c for c in grouped_df.columns if c.startswith('Member')]
+                grouped_df = grouped_df[cols].fillna("")
 
                 st.success(f"✅ {selected_course}: Grouping complete!")
                 st.write(grouped_df)
@@ -141,8 +150,7 @@ with tabs[2]:
                     mime="text/csv"
                 )
     else:
-        st.error("The file must contain both `Course` and `Name_ori` columns.")
-
+        st.error("The file must contain both `Course` and `Names` columns.")
 #--------Tab 3
 
 
