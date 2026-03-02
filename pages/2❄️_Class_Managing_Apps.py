@@ -71,7 +71,7 @@ with tabs[2]:
     st.subheader("👥 Grouping Tool")
     st.caption("Your CSV should have at least the column `Names`.")
 
-    default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/Roster_2026a.csv"
+    default_url = "https://raw.githubusercontent.com/MK316/english-phonetics/refs/heads/main/pages/data/Roster_2026b_0302.csv"
 #    st.markdown(f"[📎 Sample File: S25DL-roster.csv]({default_url})")
 
     uploaded_file = st.file_uploader("🌱 Step1: Upload your CSV file (optional)", type=["csv"])
@@ -145,7 +145,6 @@ with tabs[2]:
 
 #--------Tab 3
 
-import streamlit as st
 
 with tabs[3]:
     st.markdown("#### Google Sheet to share for Class Activities")
