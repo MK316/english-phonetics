@@ -67,6 +67,7 @@ with tabs[1]:
     """, height=600)
 
 # Grouping tab
+# Grouping tab
 with tabs[2]:
     st.subheader("👥 Grouping Tool")
     st.caption("Your CSV should have at least the column `Course` and `Names`.")
@@ -83,17 +84,20 @@ with tabs[2]:
         source_label = "📂 Using default GitHub data"
 
     if all(col in df.columns for col in ['Course', 'Names']):
-        st.success(source_label)
-
         # Step 2: Select Course
         course_list = df['Course'].dropna().unique().tolist()
         selected_course = st.selectbox("🌱 Step 2: Select Course for Grouping", course_list)
 
-        # Filter by course to show dynamic student count
+        # 코스별 데이터 필터링 및 인원수 계산
         course_df = df[df['Course'] == selected_course]
         names = course_df['Names'].dropna().tolist()
-        st.markdown(f"##### 🌱 Step 3: Group Settings (Total: {len(names)} students)")
-        
+        total_students = len(names)
+
+        # [수정 포인트] 안내 박스에 전체 인원수 추가
+        st.info(f"{source_label} | 🎓 **{selected_course}**: Total **{total_students}** students available for grouping.")
+
+        # Step 3: Group size input
+        st.markdown(f"##### 🌱 Step 3: Group Settings")
         col_in1, col_in2 = st.columns(2)
         with col_in1:
             num_group3 = st.number_input("Number of 3-member groups", min_value=0, value=0, step=1)
@@ -104,6 +108,7 @@ with tabs[2]:
             random.shuffle(names)
             grouped_data = []
             group_num = 1
+            assigned_count = 0
 
             # 1. 3인 그룹 생성
             for _ in range(num_group3):
@@ -112,6 +117,7 @@ with tabs[2]:
                     names = names[3:]
                     grouped_data.append({"Group": f"Group {group_num}", **{f"Member{i+1}": m for i, m in enumerate(members)}})
                     group_num += 1
+                    assigned_count += 3
 
             # 2. 4인 그룹 생성
             for _ in range(num_group4):
@@ -120,24 +126,23 @@ with tabs[2]:
                     names = names[4:]
                     grouped_data.append({"Group": f"Group {group_num}", **{f"Member{i+1}": m for i, m in enumerate(members)}})
                     group_num += 1
-                elif len(names) > 0: # 4명이 안 되지만 남은 인원이 있는 경우 (예시의 2명 상황)
-                    break 
+                    assigned_count += 4
 
-            # 3. [핵심] 남은 인원 처리 (Remaining members)
-            if len(names) > 0:
-                grouped_data.append({"Group": f"Group {group_num} (Remained)", **{f"Member{i+1}": m for i, m in enumerate(names)}})
+            # 3. 남은 인원 처리
+            remaining_count = len(names)
+            if remaining_count > 0:
+                grouped_data.append({"Group": f"Group {group_num} (Remainder)", **{f"Member{i+1}": m for i, m in enumerate(names)}})
+                assigned_count += remaining_count
 
             if not grouped_data:
                 st.warning("No groups were created. Please check your settings.")
             else:
-                # 데이터프레임 생성 (딕셔너리 리스트를 사용하면 멤버 수가 달라도 알아서 NaN 처리가 됨)
                 grouped_df = pd.DataFrame(grouped_data)
-                
-                # 컬럼 순서 정렬 (Group, Member1, Member2...)
                 cols = ['Group'] + [c for c in grouped_df.columns if c.startswith('Member')]
                 grouped_df = grouped_df[cols].fillna("")
 
-                st.success(f"✅ {selected_course}: Grouping complete!")
+                # 결과 요약 출력
+                st.success(f"✅ Grouping Complete! (Total {assigned_count} students assigned to {len(grouped_data)} groups)")
                 st.write(grouped_df)
 
                 # Download button
