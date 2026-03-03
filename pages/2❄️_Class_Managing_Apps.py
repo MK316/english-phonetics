@@ -67,6 +67,9 @@ with tabs[1]:
     """, height=600)
 
 # Grouping tab
+# ==============================
+# Grouping tab
+# ==============================
 # Grouping tab
 with tabs[2]:
     st.subheader("👥 Grouping Tool")
@@ -160,6 +163,7 @@ with tabs[2]:
                 )
     else:
         st.error("The file must contain both `Course` and `Names` columns.")
+
 #--------Tab 3
 
 
