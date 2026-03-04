@@ -129,17 +129,11 @@ with tab2:
     st.markdown("### 📝 Course overview")
     st.markdown(
         """
-        This course introduces the fundamental aspects of the English sound system with an emphasis on
-        learning and teaching English pronunciation. We cover the basic phonetic properties of English
-        speech sounds—**consonants and vowels**—and core concepts needed to understand the sound system.
-        We also explore **English prosody** (syllables, rhythm, and intonation).
+        This course introduces the fundamental aspects of the English sound system with an emphasis on its application to learning and teaching English pronunciation. It covers the basic phonetic properties of English speech sounds, including consonants and vowels, along with essential concepts necessary for understanding the sound system. Additionally, the course delves into English prosody, which includes the study of syllables, rhythm, and intonation. Students will engage in practical exercises, such as phonetic transcriptions of spoken English data, to develop skills in teaching pronunciation. They will also learn to differentiate between connected and isolated speech, as well as formal and informal speech, throughout the course.
 
-        You will practice **phonetic transcription** of spoken English data and develop skills for teaching
-        pronunciation. Throughout the course, you’ll learn to distinguish **connected vs. isolated speech** and
-        **formal vs. informal** styles.
         """
     )
-    AUDIO_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/audio/audio-overview.mp3"
+    AUDIO_URL = "https://raw.githubusercontent.com/MK316/english-phonetics/main/pages/audio/phonetics-overview.mp3"
     st.audio(AUDIO_URL, format="audio/mp3", start_time=0)
 
     st.markdown("### 📚 Textbook & Software")
