@@ -164,10 +164,8 @@ with tab2:
     st.markdown("### ✅ Evaluation")
     data = [
         ["Attendance & class participation", "10%", "Unexcused absence (−1); late check-in (−0.2)"],
-        ["Quizzes", "30%", "TBA"],
-        ["Exam", "40%", "Final exam"],
-        ["Assignments", "10%", "Group activities: Exercises (5), Transcription (5)"],
-        ["Summary notes", "10%", "All chapters (will be checked 3 times)"],
+        ["Exam", "70%", "Midterm (30) + Final (40) exam"],
+        ["Assignments", "20%", "Group activities: Exercises (5), Transcription (5)"]
     ]
     df_eval = pd.DataFrame(data, columns=["Component", "Percentage", "Notes"])
 
