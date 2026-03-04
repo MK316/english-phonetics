@@ -6,7 +6,7 @@ st.set_page_config(page_title="📘 16-Week Course Schedule", layout="wide")
 st.title("📘 Course Overview")
 st.markdown("[Syllabus](https://github.com/MK316/english-phonetics/raw/main/pages/data/fSyllabus_2026S_Phonetics.pdf)")
 
-tab1, tab2, tab3 = st.tabs(["Schedule", "Syllabus", "Assignments"])
+tab1, tab2, tab3, tab4 = st.tabs(["🐾 Schedule", "🐾 Syllabus", "🐾 Assignments", "🐾 Group Quest"])
 
 # =========================================================
 # Tab 1: Schedule (Google Sheet)
@@ -188,3 +188,6 @@ with tab2:
 with tab3:
     st.header("🧩 Assignments")
     st.caption("Add your assignments page content here.")
+
+with tab4:
+    st.caption("Bonus points earned through teamwork and class activities. Stay active, collaborate, and watch your Group Quest score grow!")
