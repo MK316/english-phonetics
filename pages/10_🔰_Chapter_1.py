@@ -10,6 +10,7 @@ import streamlit as st
 st.set_page_config(page_title="Lecture Slide Player - Chapter 1", layout="wide")
 st.markdown("#### 📗 Chapter 1: Articulation and Acoustics")
 st.markdown("[Ch01-Exercise pdf](https://github.com/MK316/english-phonetics/blob/main/pages/data/Ch1_exercise.pdf)")
+st.caption("See also the chapter preview video under 'Ch1 material'")
 
 # ------------ CONFIG ------------
 GITHUB_OWNER  = "MK316"
