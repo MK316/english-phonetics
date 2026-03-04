@@ -191,3 +191,4 @@ with tab3:
 
 with tab4:
     st.caption("Bonus points earned through teamwork and class activities. Stay active, collaborate, and watch your Group Quest score grow!")
+    st.markdown("👉 [View status](https://docs.google.com/spreadsheets/d/1v5k9VKQWIV7og8dvR8gJo85q99EoNbi873R9z3dhT4s/edit?usp=sharing)")
