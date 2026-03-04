@@ -17,6 +17,7 @@ with tab1:
 
     # Sample video list (replace URLs/titles with yours)
     videos = [
+        {"title": "What is sound? [6m]", "url": "https://www.youtube.com/watch?v=pcWiWjxhKE8"},
         {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/embed/2k8fHR9jKVM?si=bQlOyoMNZEhnQ3Rf"},
         {"title": "How vocal folds work", "url": "https://www.youtube.com/embed/5QhVoaVUGmM?si=XNCbqRnVsG8oh8vS"},
         {"title": "How Does the Human Body Produce Voice and Speech?", "url": "https://www.youtube.com/embed/JF8rlKuSoFM?si=JSoICMOBWxrXdMn2"},
