@@ -199,7 +199,7 @@ with tabs[3]:
                 background-color: #002244;
             }
         </style>
-        <a href="https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing" target="_blank">
+        <a href="https://docs.google.com/spreadsheets/d/1DjmI_dUh1a51Wz9Z7_eY228kAteVfF89Mm3pBGVw9m8/edit?usp=sharing" target="_blank">
             <button class="custom-button">🎯 Click: Go to Google Sheet</button>
         </a>
     """
