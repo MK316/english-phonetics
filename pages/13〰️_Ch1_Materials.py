@@ -17,7 +17,7 @@ with tab1:
 
     # Sample video list (replace URLs/titles with yours)
     videos = [
-        {"title": "Chapter 1 Preview [1:37]", "url": "https://youtube.com/watch?v=wphqk6qfQRg"},
+        {"title": "Chapter 1 Preview [1:37]", "url": "https://youtu.be/wphqk6qfQRg?si=McWwWD5V7AGwYwnR"},
         {"title": "What is sound? [6m]", "url": "https://www.youtube.com/watch?v=pcWiWjxhKE8"},
         {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/embed/2k8fHR9jKVM?si=bQlOyoMNZEhnQ3Rf"},
         {"title": "How vocal folds work", "url": "https://www.youtube.com/embed/5QhVoaVUGmM?si=XNCbqRnVsG8oh8vS"},
