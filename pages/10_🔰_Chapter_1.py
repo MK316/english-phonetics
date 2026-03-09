@@ -191,3 +191,6 @@ with st.expander("📑 Thumbnails", expanded=False):
             if st.button(f"{global_idx + 1}", key=f"thumb_btn_{global_idx}", use_container_width=True):
                 st.session_state.slide_idx = global_idx
             st.image(thumb_bytes, width=150)
+
+st.markdown("---")
+st.markdown("[Textbook homepage](https://linguistics.berkeley.edu/acip/)")
