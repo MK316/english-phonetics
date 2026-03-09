@@ -15,42 +15,23 @@ tab1, tab2, tab3 = st.tabs(["💦 Videos", "💦 Web links", "💦 Download"])
 with tab1:
     st.subheader("🎬 Useful Videos")
 
-    # Sample video list (replace URLs/titles with yours)
     videos = [
-        {"title": "Chapter 1 Preview [1:37]", "url": "https://youtu.be/wphqk6qfQRg"},
+        {"title": "Chapter 1 Preview [1:37]", "url": "https://www.youtube.com/watch?v=wphqk6qfQRg"},
         {"title": "What is sound? [6m]", "url": "https://www.youtube.com/watch?v=pcWiWjxhKE8"},
-        # Changed /embed/ to /watch?v=
         {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/watch?v=2k8fHR9jKVM"},
         {"title": "How vocal folds work", "url": "https://www.youtube.com/watch?v=5QhVoaVUGmM"},
         {"title": "How Does the Human Body Produce Voice and Speech?", "url": "https://www.youtube.com/watch?v=JF8rlKuSoFM"},
         {"title": "Vocal folds while singing", "url": "https://www.youtube.com/watch?v=-XGds2GAvGQ"}
     ]
+    
     titles = [v["title"] for v in videos]
     choice = st.selectbox("Choose a video to play:", titles, key="tab1_video_choice")
-
-    # Get selected video dict
     selected = next(v for v in videos if v["title"] == choice)
 
-    # Control video size
-    width = st.slider("Video width (px)", 400, 1000, 700, step=50)
-    height = int(width * 9 / 16)  # keep 16:9 ratio
-
-    st.markdown(
-        f"""
-        <div style="text-align: center;">
-            <iframe width="{width}" height="{height}" 
-                    src="{selected['url']}" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-            </iframe>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    # Use the native Streamlit component (works with watch?v= URLs)
+    st.video(selected['url'])
+    
     st.markdown(f"[🔗 Open on YouTube]({selected['url']})")
-
 
 
 # =========================================================
