@@ -17,14 +17,14 @@ with tab1:
 
     # Sample video list (replace URLs/titles with yours)
     videos = [
-        {"title": "Chapter 1 Preview [1:37]", "url": "https://youtu.be/wphqk6qfQRg?si=McWwWD5V7AGwYwnR"},
+        {"title": "Chapter 1 Preview [1:37]", "url": "https://youtu.be/wphqk6qfQRg"},
         {"title": "What is sound? [6m]", "url": "https://www.youtube.com/watch?v=pcWiWjxhKE8"},
-        {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/embed/2k8fHR9jKVM?si=bQlOyoMNZEhnQ3Rf"},
-        {"title": "How vocal folds work", "url": "https://www.youtube.com/embed/5QhVoaVUGmM?si=XNCbqRnVsG8oh8vS"},
-        {"title": "How Does the Human Body Produce Voice and Speech?", "url": "https://www.youtube.com/embed/JF8rlKuSoFM?si=JSoICMOBWxrXdMn2"},
-        {"title": "Vocal folds while singing", "url": "https://www.youtube.com/embed/-XGds2GAvGQ?si=a796eZI1vE87kiC3"}
+        # Changed /embed/ to /watch?v=
+        {"title": "McGurk Effect (BBC)", "url": "https://www.youtube.com/watch?v=2k8fHR9jKVM"},
+        {"title": "How vocal folds work", "url": "https://www.youtube.com/watch?v=5QhVoaVUGmM"},
+        {"title": "How Does the Human Body Produce Voice and Speech?", "url": "https://www.youtube.com/watch?v=JF8rlKuSoFM"},
+        {"title": "Vocal folds while singing", "url": "https://www.youtube.com/watch?v=-XGds2GAvGQ"}
     ]
-
     titles = [v["title"] for v in videos]
     choice = st.selectbox("Choose a video to play:", titles, key="tab1_video_choice")
 
