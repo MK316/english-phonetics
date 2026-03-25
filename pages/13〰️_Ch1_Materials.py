@@ -7,7 +7,7 @@ st.set_page_config(page_title="Multi-Apps", page_icon="🌀", layout="wide")
 st.markdown("#### 🌀 Multi-Apps for Chapter 1")
 
 # ---------- Tabs ----------
-tab1, tab2, tab3 = st.tabs(["💦 Videos", "💦 Web links", "💦 Download"])
+tab1, tab2, tab3, tab4 = st.tabs(["💦 Videos", "💦 Web links", "💦 Download", "Images"])
 
 # =========================================================
 # TAB 1 — Video links
@@ -179,6 +179,8 @@ with tab3:
             st.caption(f"Waveform preview failed: {e}")
 
 
+with tab4:
+    st.markdown("![Vocal anatomy for practice](https://github.com/MK316/english-phonetics/raw/main/data/Vocal-anatomy-final.png)")
 # https://github.com/MK316/english-phonetics/blob/main/pages/audio/dolphin.wav
 
 # ================== Tips ==================
