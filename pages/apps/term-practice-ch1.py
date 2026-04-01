@@ -154,7 +154,7 @@ with tab2:
 with tab3:
     st.subheader("🧪 Audio Quiz: One-by-One Mode")
 
-    # Session-specific token for safer widget namespacing
+    # Session-specific token for widget namespacing
     if "quiz_session_token" not in st.session_state:
         st.session_state.quiz_session_token = uuid.uuid4().hex[:8]
 
@@ -178,6 +178,17 @@ with tab3:
         if choice.lower() == "all":
             return len(df)
         return min(int(choice), len(df))
+
+    def reset_quiz_state():
+        st.session_state.quiz_started = False
+        st.session_state.quiz_completed = False
+        st.session_state.quiz_idx = 0
+        st.session_state.quiz_order = []
+        st.session_state.quiz_answers = []
+        st.session_state.quiz_start_time = None
+        st.session_state.quiz_end_time = None
+        st.session_state.quiz_last_score = None
+        st.session_state.quiz_session_token = uuid.uuid4().hex[:8]
 
     def start_quiz(user_name: str, item_choice: str):
         n_items = resolve_quiz_count(item_choice)
@@ -267,35 +278,46 @@ with tab3:
         buffer.seek(0)
         return buffer.getvalue()
 
-    # Start panel
-    if not st.session_state.quiz_started and not st.session_state.quiz_completed:
-        name_col, count_col, start_col = st.columns([2, 2, 1])
+    # Always-visible setup panel
+    st.markdown("##### Quiz Setup")
+    setup_col1, setup_col2, setup_col3, setup_col4 = st.columns([2, 2, 1, 1])
 
-        with name_col:
-            user = st.text_input(
-                "Enter your name",
-                value=st.session_state.quiz_user,
-                key=f"quiz_user_input_{st.session_state.quiz_session_token}"
-            )
+    with setup_col1:
+        user = st.text_input(
+            "Enter your name",
+            value=st.session_state.quiz_user,
+            key=f"quiz_user_input_{st.session_state.quiz_session_token}"
+        )
 
-        with count_col:
-            item_choice = st.radio(
-                "Select number of quiz items",
-                options=["10", "20", "30", "All"],
-                horizontal=True,
-                index=["10", "20", "30", "All"].index(st.session_state.quiz_num_items),
-                key=f"quiz_item_choice_{st.session_state.quiz_session_token}"
-            )
+    with setup_col2:
+        item_choice = st.radio(
+            "Select number of quiz items",
+            options=["10", "20", "30", "All"],
+            horizontal=True,
+            index=["10", "20", "30", "All"].index(st.session_state.quiz_num_items),
+            key=f"quiz_item_choice_{st.session_state.quiz_session_token}"
+        )
 
-        with start_col:
-            st.write("")
-            st.write("")
-            if st.button("▶️ Start Quiz", key=f"quiz_start_btn_{st.session_state.quiz_session_token}"):
-                if not user.strip():
-                    st.warning("Please enter your name.")
-                else:
-                    start_quiz(user, item_choice)
-                    st.rerun()
+    with setup_col3:
+        st.write("")
+        st.write("")
+        if st.button("▶️ Start Quiz", key=f"quiz_start_btn_{st.session_state.quiz_session_token}"):
+            if not user.strip():
+                st.warning("Please enter your name.")
+            else:
+                start_quiz(user, item_choice)
+                st.rerun()
+
+    with setup_col4:
+        st.write("")
+        st.write("")
+        if st.button("🔄 New Quiz Setup", key=f"quiz_reset_btn_{st.session_state.quiz_session_token}"):
+            reset_quiz_state()
+            st.session_state.quiz_user = user.strip()
+            st.session_state.quiz_num_items = item_choice
+            st.rerun()
+
+    st.caption(f"Current quiz setting: {st.session_state.quiz_num_items} items")
 
     # Active quiz
     if st.session_state.quiz_started:
@@ -303,7 +325,7 @@ with tab3:
         total = len(st.session_state.quiz_order)
         row = df.loc[st.session_state.quiz_order[idx]]
 
-        st.info(f"Question {idx + 1} of {total}  |  Selected set: {st.session_state.quiz_num_items}")
+        st.info(f"Question {idx + 1} of {total} | Selected set: {st.session_state.quiz_num_items}")
         st.audio(tts_bytes(row["Description"]), format="audio/mp3")
         st.write(answer_prompt(row))
 
@@ -315,9 +337,7 @@ with tab3:
 
         with col1:
             if st.button("⏮️ Restart", key=f"quiz_restart_{st.session_state.quiz_session_token}"):
-                st.session_state.quiz_started = False
-                st.session_state.quiz_completed = False
-                st.session_state.quiz_idx = 0
+                reset_quiz_state()
                 st.rerun()
 
         with col2:
