@@ -9,7 +9,7 @@ import streamlit as st
 # ---------------- Page setup ----------------
 st.set_page_config(page_title="Lecture Slide Player - Chapter 2", layout="wide")
 st.markdown("#### 📗 Chapter 2: Phonetic transcription")
-# st.markdown("[Reading01-chapter 1](https://github.com/MK316/classmaterial/blob/main/readings/Ch01.pdf)")
+st.markdown("[Ch2-Slides](https://github.com/MK316/english-phonetics/raw/main/data/S26_Ch02_topost.pdf)")
 
 # ------------ CONFIG ------------
 GITHUB_OWNER  = "MK316"
