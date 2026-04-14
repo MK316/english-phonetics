@@ -12,6 +12,7 @@ songs = {
     "You are my sunshine (G3)": "https://youtu.be/5TUzB2fBUpY?si=WNnRAo2Z-nFTkkam",
     "Top of the world (G4)": "https://youtu.be/9BgNVW4T1eo?si=KisjV1uQo3XLkzYV",
     "Let it be (G5)": "https://youtu.be/QDYfEBY9NM4?si=q71fkO1Sf09ThjG1",
+    "I will (Beatles)":"https://youtu.be/edi4UyCKZxU?si=-I3AW7Lk81Ca19ZO",
     "I will (G6)":"https://youtu.be/BUnt4KA4drM?si=JJFbU1zBhDWkSGfP",
     "Itsy Bitsy Teenie Weenie Yellow Polka Dot Bikini": "https://youtu.be/lpv-RGZJjP0?si=6jGak4n6QbWvJYrY",
     "Yesterday once more": "https://youtu.be/pteksK4GtCE?si=liQDKZ9TGE7nVfKt",
