@@ -15,7 +15,7 @@ st.markdown("#### 📗 Chapter 3: English consonants and allophonic rules")
 GITHUB_OWNER  = "MK316"
 GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
-FOLDER_PATH   = "pages/lecture/Ch03"
+FOLDER_PATH   = "pages/lecture/Ch03a"
 
 FILENAME_PREFIX = "Ch03a."
 FILENAME_EXT    = ".png"
