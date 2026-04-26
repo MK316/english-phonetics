@@ -17,7 +17,7 @@ GITHUB_REPO   = "english-phonetics"
 GITHUB_BRANCH = "main"
 FOLDER_PATH   = "pages/lecture/Ch03"
 
-FILENAME_PREFIX = "Ch03."
+FILENAME_PREFIX = "Ch03a."
 FILENAME_EXT    = ".png"
 START_INDEX     = 1
 END_INDEX       = 47
