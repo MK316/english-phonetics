@@ -5,6 +5,7 @@ st.set_page_config(page_title="🎵 Pop Song Transcription Project", layout="cen
 st.title("🎵 Group Project: Pop Song Transcription")
 st.markdown("Select a song from the dropdown to watch and transcribe it.")
 st.write("Please submit to Padlet by midnight on Thursday, May 7")
+st.markdown("[Peer Review Survey](https://forms.gle/i6363auHN2ShRsfc6) by May 10")
 # ---------------- Song list ----------------
 songs = {
     "Close to you (G1)":"https://youtu.be/V44jsIay7mE?si=wtixGimaM-TDzEAC",
