@@ -56,15 +56,25 @@ with tabs[0]:
         st.image(qr_img, caption=caption if caption else "Generate", use_container_width=False, width=400)
 
 
-# Timer tab
 with tabs[1]:
-    # Embed the Hugging Face space as an iframe
-    huggingface_space_url = "https://mytimer.streamlit.app"
-    
-    # Use Streamlit components to embed the external page
-    st.components.v1.html(f"""
-        <iframe src="{huggingface_space_url}" width="100%" height="600px" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    """, height=600)
+    st.subheader("⏳ Current Time in Korea:")
+
+    seoul_tz = pytz.timezone("Asia/Seoul")
+    current_time = datetime.now(seoul_tz).strftime("%H:%M:%S")
+
+    st.markdown(
+        f"""
+        <div style="text-align:center; font-size:60px; font-weight:700; color:#5785A4;">
+            {current_time}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    timer_url = "https://mytimer.streamlit.app"
+
+    st.write("Open the timer app in a new tab:")
+    st.link_button("Open Stopwatch App", timer_url)
 
 # Grouping tab
 # ==============================
