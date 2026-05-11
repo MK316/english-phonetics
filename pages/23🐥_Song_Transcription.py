@@ -1,38 +1,63 @@
 import streamlit as st
 
 # ---------------- Page setup ----------------
-st.set_page_config(page_title="🎵 Pop Song Transcription Project", layout="centered")
+st.set_page_config(
+    page_title="🎵 Pop Song Transcription Project",
+    layout="centered"
+)
+
 st.title("🎵 Group Project: Pop Song Transcription")
 st.markdown("Select a song from the dropdown to watch and transcribe it.")
 st.write("Please submit to Padlet by midnight on Saturday, May 9")
 st.markdown("[Peer Review Survey](https://forms.gle/i6363auHN2ShRsfc6) by May 10")
+
 # ---------------- Song list ----------------
 songs = {
-    "Close to you (G1)":"https://youtu.be/V44jsIay7mE?si=wtixGimaM-TDzEAC",
+    "Close to you (G1)": "https://youtu.be/V44jsIay7mE?si=wtixGimaM-TDzEAC",
     "Lemon tree (G2)": "https://youtu.be/XAFS43NKFag?si=r-2uDkTIS4PJ0tV-",
     "You are my sunshine (G3)": "https://youtu.be/5TUzB2fBUpY?si=WNnRAo2Z-nFTkkam",
     "Top of the world (G4)": "https://youtu.be/9BgNVW4T1eo?si=KisjV1uQo3XLkzYV",
     "Let it be (G5)": "https://youtu.be/QDYfEBY9NM4?si=q71fkO1Sf09ThjG1",
-    "I will (Beatles)":"https://youtu.be/edi4UyCKZxU?si=-I3AW7Lk81Ca19ZO",
-    "I will (G6)":"https://youtu.be/BUnt4KA4drM?si=JJFbU1zBhDWkSGfP",
+    "I will (Beatles)": "https://youtu.be/edi4UyCKZxU?si=-I3AW7Lk81Ca19ZO",
+    "I will (G6)": "https://youtu.be/BUnt4KA4drM?si=JJFbU1zBhDWkSGfP",
     "Itsy Bitsy Teenie Weenie Yellow Polka Dot Bikini": "https://youtu.be/lpv-RGZJjP0?si=6jGak4n6QbWvJYrY",
     "Yesterday once more": "https://youtu.be/pteksK4GtCE?si=liQDKZ9TGE7nVfKt",
     "Let it go": "https://www.youtube.com/embed/HV6Rg2SKDfg?si=QmV6uScQV-UQDlta",
     "Golden": "https://www.youtube.com/embed/66ypgOAMGpU?si=ih5gMtgnk8lBokjE",
-    "Lost Stars": "https://youtu.be/ECW_qfrhiw8?si=FbRRo_BbHKRdbn6g"
+    "Lost Stars": "https://youtu.be/ECW_qfrhiw8?si=FbRRo_BbHKRdbn6g",
+    "Peer Review": "https://github.com/MK316/english-phonetics/raw/main/data/26-song.png"
 }
 
-# Replace with your shared Google Sheet link
+# ---------------- Google Sheet link ----------------
 GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1EtXckbP8BtkeoHEqUc0KFv5xarUgegm8rJ-Ri0rloQo/edit?usp=sharing"
 
 # ---------------- Dropdown ----------------
-song_choice = st.selectbox("🎶 Choose a song", ["-- Select a song --"] + list(songs.keys()))
+song_choice = st.selectbox(
+    "🎶 Choose a song",
+    ["-- Select a song --"] + list(songs.keys())
+)
 
-# ---------------- Display video ----------------
+# ---------------- Display selected item ----------------
 if song_choice != "-- Select a song --":
-    st.video(songs[song_choice], format="video/mp4", start_time=0)
+    selected_url = songs[song_choice]
 
-    st.markdown("✏️ **Instructions**: Notify when your group decides which one to pick (by 9/23).")
+    if song_choice == "Peer Review":
+        st.image(
+            selected_url,
+            caption="Peer Review",
+            use_container_width=True
+        )
+    else:
+        st.video(
+            selected_url,
+            start_time=0
+        )
 
-    # ---------------- Google Sheet Button ----------------
-    st.link_button("📑 Open Group Transcription Sheet", GOOGLE_SHEET_URL)
+    st.markdown(
+        "✏️ **Instructions**: Notify when your group decides which one to pick (by 9/23)."
+    )
+
+    st.link_button(
+        "📑 Open Group Transcription Sheet",
+        GOOGLE_SHEET_URL
+    )
