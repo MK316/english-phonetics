@@ -18,7 +18,7 @@ GITHUB_BRANCH = "main"
 FOLDER_PATH   = "pages/lecture/Ch04"
 
 FILENAME_PREFIX = "Ch4."
-FILENAME_EXT    = ".PNG"
+FILENAME_EXT    = ".png"
 START_INDEX     = 1
 END_INDEX       = 34
 
